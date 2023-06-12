@@ -1,146 +1,39 @@
-{% extends 'base.html.twig' %}
-{% import "@SharedProjectTimesheets/manage/actions.html.twig" as actions %}
-{% import "macros/datatables.html.twig" as tables %}
+{% extends 'datatable.html.twig' %}
 {% import "macros/widgets.html.twig" as widgets %}
+{% import "@SharedProjectTimesheets/manage/actions.html.twig" as actions %}
 
-{% set columns = {
-    'name': {'class': 'alwaysVisible'},
-    'url': {'class': 'alwaysVisible'},
-    'password': {'class': 'hidden-xs hidden-sm text-center'},
-    'record_merge_mode': {'class': 'hidden-xs hidden-sm text-center'},
-    'entry_user_visible': {'class': 'hidden-xs hidden-sm text-center'},
-    'entry_rate_visible': {'class': 'hidden-xs hidden-sm text-center'},
-    'annual_chart_visible': {'class': 'hidden-xs hidden-sm text-center'},
-    'monthly_chart_visible': {'class': 'hidden-xs hidden-sm text-center'},
-    'actions': {'class': 'hidden-xs hidden-sm'},
-} %}
+{% block datatable_row_attr %} class="modal-ajax-form open-edit" data-href="{{ url('update_shared_project_timesheets', {projectId: entry.project.id, shareKey: entry.shareKey}) }}"{% endblock %}
 
-{% block page_title %}{{ 'shared_project_timesheets.manage.title' | trans }}{% endblock %}
-{% block page_subtitle %}{{ 'shared_project_timesheets.manage.subtitle' | trans }}{% endblock %}
-{% block page_actions %}{{ actions.sharedProjectIndex('index') }}{% endblock %}
-
-{% set tableName = 'shared_project_timesheets_manage' %}
-
-{% block main_before %}
-    {{ tables.data_table_column_modal(tableName, columns) }}
-{% endblock %}
-
-{% block main %}
-    {{ tables.datatable_header(tableName, columns, null, {'translationPrefix': 'shared_project_timesheets.manage.table.'}) }}
-
-    {% for sharedProject in sharedProjects %}
-        <tr class="alternative-link open-edit" data-href="{{ url('update_shared_project_timesheets', {projectId: sharedProject.project.id, shareKey: sharedProject.shareKey}) }}">
-            <td class="{{ tables.data_table_column_class(tableName, columns, 'name') }}">{{ sharedProject.project.name }}</td>
-            <td class="{{ tables.data_table_column_class(tableName, columns, 'url') }}">
-                {% if sharedProject.shareKey %}
-                    <div class="input-group">
-                        <a class="input-group-addon btn btn-sm btn-default"
-                           href="{{ url('view_shared_project_timesheets', {projectId: sharedProject.project.id, shareKey: sharedProject.shareKey}) }}"
-                           target="_blank">
-                            {{ 'shared_project_timesheets.manage.open' | trans }}
-                        </a>
-                        <input class="form-control input-sm hidden-xs hidden-sm hidden-md"
-                               id="url{{ sharedProject.shareKey }}"
-                               value="{{ url('view_shared_project_timesheets', {projectId: sharedProject.project.id, shareKey: sharedProject.shareKey}) }}"
-                               onclick="select()" readonly/>
-                        <a class="input-group-addon btn btn-sm btn-default copy-btn"
-                           id="btn{{ sharedProject.shareKey }}"
-                           data-clipboard-target="#url{{ sharedProject.shareKey }}">
-                            {{ 'shared_project_timesheets.manage.copy' | trans }}
-                        </a>
-                    </div>
-                {% else %}
-                    -
-                {% endif %}
-            </td>
-            <td class="{{ tables.data_table_column_class(tableName, columns, 'password') }}">
-                <i class="{{ sharedProject.password ? "fa fa-check-circle" : "far fa-circle" }}"></i>
-            </td>
-            <td class="{{ tables.data_table_column_class(tableName, columns, 'record_merge_mode') }}" title="{{ RecordMergeMode[sharedProject.recordMergeMode] | trans }}">
-                <i class="{{ sharedProject.recordMergeMode != mergeModeNone ? "fa fa-check-circle" : "far fa-circle" }}"></i>
-                {% if sharedProject.recordMergeMode == mergeModeMerge %}
-                    <i class="fa fa-compress-alt"></i>
-                {% else %}
-                    {% if sharedProject.recordMergeMode != mergeModeNone %}
-                        <i class="fa fa-fast-forward fa-{% if sharedProject.recordMergeMode == mergeModeUseLast %}rotate-90{% else %}rotate-270{% endif %}"></i>
-                    {% endif %}
-                {% endif %}
-            </td>
-            <td class="{{ tables.data_table_column_class(tableName, columns, 'entry_user_visible') }}">
-                <i class="{{ sharedProject.entryUserVisible ? "fa fa-check-circle" : "far fa-circle" }}"></i>
-            </td>
-            <td class="{{ tables.data_table_column_class(tableName, columns, 'entry_rate_visible') }}">
-                <i class="{{ sharedProject.entryRateVisible ? "fa fa-check-circle" : "far fa-circle" }}"></i>
-            </td>
-            <td class="{{ tables.data_table_column_class(tableName, columns, 'annual_chart_visible') }}">
-                <i class="{{ sharedProject.annualChartVisible ? "fa fa-check-circle" : "far fa-circle" }}"></i>
-            </td>
-            <td class="{{ tables.data_table_column_class(tableName, columns, 'monthly_chart_visible') }}">
-                <i class="{{ sharedProject.monthlyChartVisible ? "fa fa-check-circle" : "far fa-circle" }}"></i>
-            </td>
-            <td class="{{ tables.data_table_column_class(tableName, columns, 'actions') }}">{{ actions.removeSharedProject(sharedProject, 'index') }}</td>
-        </tr>
-    {% endfor %}
-    {% if sharedProjects is empty %}
-    <tr>
-        <td colspan="{{ columns | length }}" class="text-center">
-            <a href="{{ url('create_shared_project_timesheets') }}" class="noEntriesMessage">
-                <i class="fa fa-3x fa-plus-circle"></i>
-                {{ 'shared_project_timesheets.manage.create_link_label' | trans }}
+{% block datatable_column_value %}
+    {% if column == 'name' %}
+        {{ entry.project.name }}
+    {% elseif column == 'url' %}
+        {% if entry.shareKey %}
+            {% set p_url = url('view_shared_project_timesheets', {id: entry.project.id, shareKey: entry.shareKey}) %}
+            <a href="{{ p_url }}" target="_blank">
+                {{ p_url }}
             </a>
-        </td>
-    </tr>
+        {% else %}
+            -
+        {% endif %}
+    {% elseif column == 'password' %}
+        {{ widgets.label_boolean(entry.password != null) }}
+    {% elseif column == 'record_merge_mode' %}
+        {% if entry.hasRecordMerging() %}
+            {{ widgets.label('yes'|trans, 'success', (RecordMergeMode[entry.recordMergeMode] | trans) ) }}
+        {% else %}
+            {{ widgets.label_boolean(entry.hasRecordMerging()) }}
+        {% endif %}
+    {% elseif column == 'entry_user_visible' %}
+        {{ widgets.label_boolean(entry.entryUserVisible) }}
+    {% elseif column == 'entry_rate_visible' %}
+        {{ widgets.label_boolean(entry.entryRateVisible) }}
+    {% elseif column == 'annual_chart_visible' %}
+        {{ widgets.label_boolean(entry.annualChartVisible) }}
+    {% elseif column == 'monthly_chart_visible' %}
+        {{ widgets.label_boolean(entry.monthlyChartVisible) }}
+    {% elseif column == 'actions' %}
+        {% set event = actions(app.user, 'shared_project', 'index', {'shared_project': entry}) %}
+        {{ widgets.table_actions(event.actions) }}
     {% endif %}
-
-    {{ tables.data_table_footer() }}
-{% endblock %}
-
-{% block stylesheets %}
-{{ parent() }}
-<style type="text/css">
-    .noEntriesMessage {
-        display: block;
-        padding: 2rem 0.5rem;
-    }
-
-    .noEntriesMessage i {
-        display: block;
-        padding-bottom: 1rem;
-    }
-</style>
-{% endblock %}
-
-{% block javascripts %}
-{{ parent() }}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"
-            integrity="sha512-sIqUEnRn31BgngPmHt2JenzleDDsXwYO+iyvQ46Mw6RL+udAUZj2n/u/PGY80NxRxynO7R9xIGx5LEzw4INWJQ=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-    <script type="text/javascript">
-        $(function() {
-            $('.copy-btn').tooltip({
-                trigger: 'manual',
-                placement: 'bottom',
-            });
-
-            var clipboard = new ClipboardJS('.copy-btn');
-            var clipboardTimeouts = {};
-            clipboard.on('success', function(e) {
-                var $el = $(e.trigger);
-                var id = $el.attr("id");
-
-                if (clipboardTimeouts[id]) {
-                    clearTimeout(clipboardTimeouts[id]);
-                    clipboardTimeouts[id] = undefined;
-                }
-
-                $el.attr('data-original-title', '{{ 'shared_project_timesheets.manage.copied' | trans }}')
-                    .tooltip('show');
-
-                clipboardTimeouts[id] = setTimeout(function() {
-                    $el.tooltip('hide');
-                }, 500);
-            });
-        });
-    </script>
 {% endblock %}

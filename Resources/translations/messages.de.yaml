@@ -7,7 +7,6 @@ shared_project_timesheets:
         open: Öffnen
         copy: Kopieren
         copied: Kopiert
-        subtitle: Verwalten Sie Ihre geteilten Projektzeiten
         create_link_label: Fügen Sie einen Eintrag hinzu, um Projektzeiten zu teilen
         create:
             subtitle: Eintrag hinzufügen

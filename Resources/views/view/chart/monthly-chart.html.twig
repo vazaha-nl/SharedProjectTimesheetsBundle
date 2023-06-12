@@ -1,9 +1,9 @@
 {% set chartId = 'statsPerDayChart' %}
-{% set backgroundColor = kimai_context.chart.background_color %}
-{% set gridColor = kimai_context.chart.grid_color %}
+{% set backgroundColor = config('theme.chart.background_color') %}
+{% set gridColor = config('theme.chart.grid_color') %}
 
-<div class="chart">
-    <canvas id="{{ chartId }}" style="height: {{ kimai_context.chart.height }}px;"></canvas>
+<div class="chart" style="max-height: {{ config('theme.chart.height') }}px;">
+    <canvas id="{{ chartId }}" style="height: {{ config('theme.chart.height') }}px;"></canvas>
 </div>
 
 <script type="text/javascript">
@@ -31,11 +31,11 @@
             }]
         },
         options: {
-            maintainAspectRatio: true,
+            maintainAspectRatio: false,
             responsive: true,
             legend: false,
             scales: {
-                yAxes: [{
+                y: {
                     scaleLabel: {
                         display: true,
                         labelString: '{{ 'shared_project_timesheets.view.table.duration' | trans }}',
@@ -48,7 +48,7 @@
                         color: '{{ gridColor }}',
                         lineWidth: 1
                     }
-                }],
+                },
             },
             tooltips: {
                 callbacks: {

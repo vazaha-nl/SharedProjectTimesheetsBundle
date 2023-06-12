@@ -1,6 +1,7 @@
 <?php
-/**
- * This file is part of the SharedProjectTimesheetsBundle for Kimai 2.
+
+/*
+ * This file is part of the "Shared Project Timesheets Bundle" for Kimai.
  * All rights reserved by Fabian Vetter (https://vettersolutions.de).
  *
  * For the full copyright and license information, please view the LICENSE file
@@ -9,15 +10,18 @@
 
 namespace KimaiPlugin\SharedProjectTimesheetsBundle\Model;
 
-
 class RecordMergeMode
 {
-    const MODE_NONE = 'NONE';
-    const MODE_MERGE = 'MERGE';
-    const MODE_MERGE_USE_FIRST_OF_DAY = 'MERGE_USE_FIRST_OF_DAY';
-    const MODE_MERGE_USE_LAST_OF_DAY = 'MERGE_USE_LAST_OF_DAY';
+    public const MODE_NONE = 'NONE';
+    public const MODE_MERGE = 'MERGE';
+    public const MODE_MERGE_USE_FIRST_OF_DAY = 'MERGE_USE_FIRST_OF_DAY';
+    public const MODE_MERGE_USE_LAST_OF_DAY = 'MERGE_USE_LAST_OF_DAY';
 
-    public static function getModes() {
+    /**
+     * @return array<string, string>
+     */
+    public static function getModes(): array
+    {
         return [
             self::MODE_NONE => 'shared_project_timesheets.model.merge_record_mode.none',
             self::MODE_MERGE => 'shared_project_timesheets.model.merge_record_mode.merge',
@@ -25,5 +29,4 @@ class RecordMergeMode
             self::MODE_MERGE_USE_LAST_OF_DAY => 'shared_project_timesheets.model.merge_record_mode.merge_use_last_of_day',
         ];
     }
-
 }

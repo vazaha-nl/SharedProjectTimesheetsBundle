@@ -7,7 +7,6 @@ shared_project_timesheets:
         open: Open
         copy: Copy
         copied: Copied
-        subtitle: Manage your shared project timesheets
         create_link_label: Create an entry to share your project timesheets
         create:
             subtitle: Create entry

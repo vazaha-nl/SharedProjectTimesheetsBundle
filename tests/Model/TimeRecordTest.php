@@ -1,6 +1,7 @@
 <?php
-/**
- * This file is part of the SharedProjectTimesheetsBundle for Kimai 2.
+
+/*
+ * This file is part of the "Shared Project Timesheets Bundle" for Kimai.
  * All rights reserved by Fabian Vetter (https://vettersolutions.de).
  *
  * For the full copyright and license information, please view the LICENSE file
@@ -8,7 +9,6 @@
  */
 
 namespace KimaiPlugin\SharedProjectTimesheetsBundle\tests\Model;
-
 
 use App\Entity\Timesheet;
 use App\Entity\User;
@@ -22,7 +22,6 @@ use PHPUnit\Framework\TestCase;
  */
 class TimeRecordTest extends TestCase
 {
-
     /**
      * Creates a valid timesheet record from the given parameters.
      * @param DateTime $date date of the timesheet
@@ -43,13 +42,13 @@ class TimeRecordTest extends TestCase
             ->setDescription($description);
     }
 
-    function testInvalidTimesheet(): void
+    public function testInvalidTimesheet(): void
     {
-        $this->expectErrorMessage("null given");
+        $this->expectErrorMessage('null given');
         TimeRecord::fromTimesheet(new Timesheet());
     }
 
-    function testValidEmptyTimesheet(): void
+    public function testValidEmptyTimesheet(): void
     {
         $begin = new DateTime();
         $user = new User();
@@ -68,13 +67,13 @@ class TimeRecordTest extends TestCase
         self::assertEquals([], $timeRecord->getHourlyRates());
     }
 
-    function testValidFilledTimesheet(): void
+    public function testValidFilledTimesheet(): void
     {
         $hours = 2.1;
         $hourlyRate = 123.456;
         $rate = $hours * $hourlyRate;
         $duration = $hours * 60 * 60;
-        $description = "description";
+        $description = 'description';
 
         $timeRecord = TimeRecord::fromTimesheet(
             self::createTimesheet(new DateTime(), new User(), $hourlyRate, $duration, $description)
@@ -86,11 +85,11 @@ class TimeRecordTest extends TestCase
 
         self::assertNotEmpty($timeRecord->getHourlyRates());
         self::assertEquals(false, $timeRecord->hasDifferentHourlyRates());
-        self::assertEquals($hourlyRate, $timeRecord->getHourlyRates()[0]["hourlyRate"]);
-        self::assertEquals($duration, $timeRecord->getHourlyRates()[0]["duration"]);
+        self::assertEquals($hourlyRate, $timeRecord->getHourlyRates()[0]['hourlyRate']);
+        self::assertEquals($duration, $timeRecord->getHourlyRates()[0]['duration']);
     }
 
-    function testMergeModeNull(): void
+    public function testMergeModeNull(): void
     {
         $this->expectException(\InvalidArgumentException::class);
 
@@ -100,7 +99,7 @@ class TimeRecordTest extends TestCase
         );
     }
 
-    function testMergeModeNone(): void
+    public function testMergeModeNone(): void
     {
         $this->expectException(\InvalidArgumentException::class);
 
@@ -110,7 +109,7 @@ class TimeRecordTest extends TestCase
         );
     }
 
-    function testMergeModeRandom(): void
+    public function testMergeModeRandom(): void
     {
         $this->expectException(\InvalidArgumentException::class);
 
@@ -120,19 +119,19 @@ class TimeRecordTest extends TestCase
         );
     }
 
-    function testMergeModeDefaultSameRate(): void
+    public function testMergeModeDefaultSameRate(): void
     {
         $hourlyRate = 123.456;
 
         $firstRecordHours = 2.1;
         $firstRecordRate = $firstRecordHours * $hourlyRate;
         $firstRecordDuration = $firstRecordHours * 60 * 60;
-        $firstRecordDescription = "description-first";
+        $firstRecordDescription = 'description-first';
 
         $secondRecordHours = 3.8;
         $secondRecordRate = $secondRecordHours * $hourlyRate;
         $secondRecordDuration = $secondRecordHours * 60 * 60;
-        $secondRecordDescription = "description-second";
+        $secondRecordDescription = 'description-second';
 
         $timesheet1 = self::createTimesheet(new DateTime(), new User(), $hourlyRate, $firstRecordDuration, $firstRecordDescription);
         $timesheet2 = self::createTimesheet(new DateTime(), new User(), $hourlyRate, $secondRecordDuration, $secondRecordDescription);
@@ -146,23 +145,23 @@ class TimeRecordTest extends TestCase
 
         self::assertNotEmpty($timeRecord->getHourlyRates());
         self::assertEquals(false, $timeRecord->hasDifferentHourlyRates());
-        self::assertEquals($hourlyRate, $timeRecord->getHourlyRates()[0]["hourlyRate"]);
-        self::assertEquals($firstRecordDuration + $secondRecordDuration, $timeRecord->getHourlyRates()[0]["duration"]);
+        self::assertEquals($hourlyRate, $timeRecord->getHourlyRates()[0]['hourlyRate']);
+        self::assertEquals($firstRecordDuration + $secondRecordDuration, $timeRecord->getHourlyRates()[0]['duration']);
     }
 
-    function testMergeModeUseFirstSameRate(): void
+    public function testMergeModeUseFirstSameRate(): void
     {
         $hourlyRate = 123.456;
 
         $firstRecordHours = 2.1;
         $firstRecordRate = $firstRecordHours * $hourlyRate;
         $firstRecordDuration = $firstRecordHours * 60 * 60;
-        $firstRecordDescription = "description-first";
+        $firstRecordDescription = 'description-first';
 
         $secondRecordHours = 3.8;
         $secondRecordRate = $secondRecordHours * $hourlyRate;
         $secondRecordDuration = $secondRecordHours * 60 * 60;
-        $secondRecordDescription = "description-second";
+        $secondRecordDescription = 'description-second';
 
         $timesheet1 = self::createTimesheet(new DateTime(), new User(), $hourlyRate, $firstRecordDuration, $firstRecordDescription);
         $timesheet2 = self::createTimesheet(new DateTime(), new User(), $hourlyRate, $secondRecordDuration, $secondRecordDescription);
@@ -176,23 +175,23 @@ class TimeRecordTest extends TestCase
 
         self::assertNotEmpty($timeRecord->getHourlyRates());
         self::assertEquals(false, $timeRecord->hasDifferentHourlyRates());
-        self::assertEquals($hourlyRate, $timeRecord->getHourlyRates()[0]["hourlyRate"]);
-        self::assertEquals($firstRecordDuration + $secondRecordDuration, $timeRecord->getHourlyRates()[0]["duration"]);
+        self::assertEquals($hourlyRate, $timeRecord->getHourlyRates()[0]['hourlyRate']);
+        self::assertEquals($firstRecordDuration + $secondRecordDuration, $timeRecord->getHourlyRates()[0]['duration']);
     }
 
-    function testMergeModeUseLastSameRate(): void
+    public function testMergeModeUseLastSameRate(): void
     {
         $hourlyRate = 123.456;
 
         $firstRecordHours = 2.1;
         $firstRecordRate = $firstRecordHours * $hourlyRate;
         $firstRecordDuration = $firstRecordHours * 60 * 60;
-        $firstRecordDescription = "description-first";
+        $firstRecordDescription = 'description-first';
 
         $secondRecordHours = 3.8;
         $secondRecordRate = $secondRecordHours * $hourlyRate;
         $secondRecordDuration = $secondRecordHours * 60 * 60;
-        $secondRecordDescription = "description-second";
+        $secondRecordDescription = 'description-second';
 
         $timesheet1 = self::createTimesheet(new DateTime(), new User(), $hourlyRate, $firstRecordDuration, $firstRecordDescription);
         $timesheet2 = self::createTimesheet(new DateTime(), new User(), $hourlyRate, $secondRecordDuration, $secondRecordDescription);
@@ -206,23 +205,23 @@ class TimeRecordTest extends TestCase
 
         self::assertNotEmpty($timeRecord->getHourlyRates());
         self::assertEquals(false, $timeRecord->hasDifferentHourlyRates());
-        self::assertEquals($hourlyRate, $timeRecord->getHourlyRates()[0]["hourlyRate"]);
-        self::assertEquals($firstRecordDuration + $secondRecordDuration, $timeRecord->getHourlyRates()[0]["duration"]);
+        self::assertEquals($hourlyRate, $timeRecord->getHourlyRates()[0]['hourlyRate']);
+        self::assertEquals($firstRecordDuration + $secondRecordDuration, $timeRecord->getHourlyRates()[0]['duration']);
     }
 
-    function testMergeModeDefaultDifferentRate(): void
+    public function testMergeModeDefaultDifferentRate(): void
     {
         $firstRecordHours = 2.1;
         $firstRecordHourlyRate = 123.456;
         $firstRecordRate = $firstRecordHours * $firstRecordHourlyRate;
         $firstRecordDuration = $firstRecordHours * 60 * 60;
-        $firstRecordDescription = "description-first";
+        $firstRecordDescription = 'description-first';
 
         $secondRecordHours = 3.8;
         $secondRecordHourlyRate = 234.567;
         $secondRecordRate = $secondRecordHours * $secondRecordHourlyRate;
         $secondRecordDuration = $secondRecordHours * 60 * 60;
-        $secondRecordDescription = "description-second";
+        $secondRecordDescription = 'description-second';
 
         $timesheet1 = self::createTimesheet(new DateTime(), new User(), $firstRecordHourlyRate, $firstRecordDuration, $firstRecordDescription);
         $timesheet2 = self::createTimesheet(new DateTime(), new User(), $secondRecordHourlyRate, $secondRecordDuration, $secondRecordDescription);
@@ -236,25 +235,25 @@ class TimeRecordTest extends TestCase
 
         self::assertNotEmpty($timeRecord->getHourlyRates());
         self::assertEquals(true, $timeRecord->hasDifferentHourlyRates());
-        self::assertEquals($firstRecordHourlyRate, $timeRecord->getHourlyRates()[0]["hourlyRate"]);
-        self::assertEquals($firstRecordDuration, $timeRecord->getHourlyRates()[0]["duration"]);
-        self::assertEquals($secondRecordHourlyRate, $timeRecord->getHourlyRates()[1]["hourlyRate"]);
-        self::assertEquals($secondRecordDuration, $timeRecord->getHourlyRates()[1]["duration"]);
+        self::assertEquals($firstRecordHourlyRate, $timeRecord->getHourlyRates()[0]['hourlyRate']);
+        self::assertEquals($firstRecordDuration, $timeRecord->getHourlyRates()[0]['duration']);
+        self::assertEquals($secondRecordHourlyRate, $timeRecord->getHourlyRates()[1]['hourlyRate']);
+        self::assertEquals($secondRecordDuration, $timeRecord->getHourlyRates()[1]['duration']);
     }
 
-    function testMergeModeUseFirstDifferentRate(): void
+    public function testMergeModeUseFirstDifferentRate(): void
     {
         $firstRecordHours = 2.1;
         $firstRecordHourlyRate = 123.456;
         $firstRecordRate = $firstRecordHours * $firstRecordHourlyRate;
         $firstRecordDuration = $firstRecordHours * 60 * 60;
-        $firstRecordDescription = "description-first";
+        $firstRecordDescription = 'description-first';
 
         $secondRecordHours = 3.8;
         $secondRecordHourlyRate = 234.567;
         $secondRecordRate = $secondRecordHours * $secondRecordHourlyRate;
         $secondRecordDuration = $secondRecordHours * 60 * 60;
-        $secondRecordDescription = "description-second";
+        $secondRecordDescription = 'description-second';
 
         $timesheet1 = self::createTimesheet(new DateTime(), new User(), $firstRecordHourlyRate, $firstRecordDuration, $firstRecordDescription);
         $timesheet2 = self::createTimesheet(new DateTime(), new User(), $secondRecordHourlyRate, $secondRecordDuration, $secondRecordDescription);
@@ -268,25 +267,25 @@ class TimeRecordTest extends TestCase
 
         self::assertNotEmpty($timeRecord->getHourlyRates());
         self::assertEquals(true, $timeRecord->hasDifferentHourlyRates());
-        self::assertEquals($firstRecordHourlyRate, $timeRecord->getHourlyRates()[0]["hourlyRate"]);
-        self::assertEquals($firstRecordDuration, $timeRecord->getHourlyRates()[0]["duration"]);
-        self::assertEquals($secondRecordHourlyRate, $timeRecord->getHourlyRates()[1]["hourlyRate"]);
-        self::assertEquals($secondRecordDuration, $timeRecord->getHourlyRates()[1]["duration"]);
+        self::assertEquals($firstRecordHourlyRate, $timeRecord->getHourlyRates()[0]['hourlyRate']);
+        self::assertEquals($firstRecordDuration, $timeRecord->getHourlyRates()[0]['duration']);
+        self::assertEquals($secondRecordHourlyRate, $timeRecord->getHourlyRates()[1]['hourlyRate']);
+        self::assertEquals($secondRecordDuration, $timeRecord->getHourlyRates()[1]['duration']);
     }
 
-    function testMergeModeUseLastDifferentRate(): void
+    public function testMergeModeUseLastDifferentRate(): void
     {
         $firstRecordHours = 2.1;
         $firstRecordHourlyRate = 123.456;
         $firstRecordRate = $firstRecordHours * $firstRecordHourlyRate;
         $firstRecordDuration = $firstRecordHours * 60 * 60;
-        $firstRecordDescription = "description-first";
+        $firstRecordDescription = 'description-first';
 
         $secondRecordHours = 3.8;
         $secondRecordHourlyRate = 234.567;
         $secondRecordRate = $secondRecordHours * $secondRecordHourlyRate;
         $secondRecordDuration = $secondRecordHours * 60 * 60;
-        $secondRecordDescription = "description-second";
+        $secondRecordDescription = 'description-second';
 
         $timesheet1 = self::createTimesheet(new DateTime(), new User(), $firstRecordHourlyRate, $firstRecordDuration, $firstRecordDescription);
         $timesheet2 = self::createTimesheet(new DateTime(), new User(), $secondRecordHourlyRate, $secondRecordDuration, $secondRecordDescription);
@@ -300,10 +299,9 @@ class TimeRecordTest extends TestCase
 
         self::assertNotEmpty($timeRecord->getHourlyRates());
         self::assertEquals(true, $timeRecord->hasDifferentHourlyRates());
-        self::assertEquals($firstRecordHourlyRate, $timeRecord->getHourlyRates()[0]["hourlyRate"]);
-        self::assertEquals($firstRecordDuration, $timeRecord->getHourlyRates()[0]["duration"]);
-        self::assertEquals($secondRecordHourlyRate, $timeRecord->getHourlyRates()[1]["hourlyRate"]);
-        self::assertEquals($secondRecordDuration, $timeRecord->getHourlyRates()[1]["duration"]);
+        self::assertEquals($firstRecordHourlyRate, $timeRecord->getHourlyRates()[0]['hourlyRate']);
+        self::assertEquals($firstRecordDuration, $timeRecord->getHourlyRates()[0]['duration']);
+        self::assertEquals($secondRecordHourlyRate, $timeRecord->getHourlyRates()[1]['hourlyRate']);
+        self::assertEquals($secondRecordDuration, $timeRecord->getHourlyRates()[1]['duration']);
     }
-
 }

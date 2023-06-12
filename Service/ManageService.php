@@ -1,6 +1,7 @@
 <?php
-/**
- * This file is part of the SharedProjectTimesheetsBundle for Kimai 2.
+
+/*
+ * This file is part of the "Shared Project Timesheets Bundle" for Kimai.
  * All rights reserved by Fabian Vetter (https://vettersolutions.de).
  *
  * For the full copyright and license information, please view the LICENSE file
@@ -9,34 +10,25 @@
 
 namespace KimaiPlugin\SharedProjectTimesheetsBundle\Service;
 
-
 use App\Entity\Project;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Entity\SharedProjectTimesheet;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Repository\SharedProjectTimesheetRepository;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\Security\Core\Encoder\NativePasswordEncoder;
-
+use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
+use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 
 class ManageService
 {
-    const PASSWORD_DO_NOT_CHANGE_VALUE = "__DO_NOT_CHANGE__";
+    public const PASSWORD_DO_NOT_CHANGE_VALUE = '__DO_NOT_CHANGE__';
 
-    /**
-     * @var SharedProjectTimesheetRepository
-     */
-    private $sharedProjectTimesheetRepository;
+    public function __construct(private SharedProjectTimesheetRepository $sharedProjectTimesheetRepository, private PasswordHasherFactoryInterface $passwordHasherFactory)
+    {
+    }
 
-    /**
-     * @var NativePasswordEncoder
-     */
-    private $encoder;
-
-    public function __construct(SharedProjectTimesheetRepository $sharedProjectTimesheetRepository) {
-        $this->sharedProjectTimesheetRepository = $sharedProjectTimesheetRepository;
-
-        $this->encoder = new NativePasswordEncoder();
+    private function getPasswordHasher(): PasswordHasherInterface
+    {
+        return $this->passwordHasherFactory->getPasswordHasher('shared_projects');
     }
 
     /**
@@ -48,10 +40,10 @@ class ManageService
     public function create(SharedProjectTimesheet $sharedProjectTimesheet, ?string $password = null): SharedProjectTimesheet
     {
         // Set share key
-        if ( $sharedProjectTimesheet->getShareKey() === null ) {
+        if ($sharedProjectTimesheet->getShareKey() === null) {
             do {
                 $sharedProjectTimesheet->setShareKey(
-                    substr(preg_replace("/[^A-Za-z0-9]+/", "", $this->getUuidV4()), 0, 12)
+                    substr(preg_replace('/[^A-Za-z0-9]+/', '', $this->getUuidV4()), 0, 12)
                 );
 
                 $existingEntry = $this->sharedProjectTimesheetRepository->findByProjectAndShareKey(
@@ -74,7 +66,7 @@ class ManageService
     {
         // Check if updatable
         if ($sharedProjectTimesheet->getShareKey() === null) {
-            throw new \InvalidArgumentException("Cannot update shared project timesheet with share key equals null");
+            throw new \InvalidArgumentException('Cannot update shared project timesheet with share key equals null');
         }
 
         // Ensure project
@@ -85,10 +77,10 @@ class ManageService
         // Handle password
         $currentHashedPassword = $sharedProjectTimesheet !== null && !empty($sharedProjectTimesheet->getPassword()) ? $sharedProjectTimesheet->getPassword() : null;
 
-        if ( $newPassword !== self::PASSWORD_DO_NOT_CHANGE_VALUE ) {
+        if ($newPassword !== self::PASSWORD_DO_NOT_CHANGE_VALUE) {
             if (!empty($newPassword)) {
                 // Change password
-                $encodedPassword = $this->encoder->encodePassword($newPassword, null);
+                $encodedPassword = $this->getPasswordHasher()->hash($newPassword);
                 $sharedProjectTimesheet->setPassword($encodedPassword);
             } else {
                 // Reset password if exists
@@ -99,18 +91,22 @@ class ManageService
         }
 
         $this->sharedProjectTimesheetRepository->save($sharedProjectTimesheet);
+
         return $sharedProjectTimesheet;
     }
 
     /**
-     * @link https://www.php.net/manual/en/function.uniqid.php#94959
+     * @see https://www.php.net/manual/en/function.uniqid.php#94959
      * @return string
      */
-    private function getUuidV4() {
-        return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+    private function getUuidV4(): string
+    {
+        return sprintf(
+            '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
 
             // 32 bits for "time_low"
-            mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
 
             // 16 bits for "time_mid"
             mt_rand(0, 0xffff),
@@ -125,8 +121,9 @@ class ManageService
             mt_rand(0, 0x3fff) | 0x8000,
 
             // 48 bits for "node"
-            mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff)
         );
     }
-
 }

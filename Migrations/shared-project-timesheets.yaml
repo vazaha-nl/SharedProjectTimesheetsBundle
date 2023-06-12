@@ -4,9 +4,10 @@
 #
 # Execute all migrations with:
 # bin/console kimai:bundle:shared-project-timesheets:install
+# bin/console doctrine:migrations:migrate --em=default --configuration=var/plugins/SharedProjectTimesheetsBundle/Migrations/shared-project-timesheets.yaml
 # --------------------------------------------------------------------------------------------------
 
 table_storage:
-  table_name: bundle_migration_shared_project_timesheets
+  table_name: 'bundle_migration_shared_project_timesheets'
 migrations_paths:
-  KimaiPlugin\SharedProjectTimesheetsBundle\Migrations: var/plugins/SharedProjectTimesheetsBundle/Migrations
+  KimaiPlugin\SharedProjectTimesheetsBundle\Migrations: 'var/plugins/SharedProjectTimesheetsBundle/Migrations'

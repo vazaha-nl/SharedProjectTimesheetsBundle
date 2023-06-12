@@ -1,6 +1,7 @@
 <?php
-/**
- * This file is part of the SharedProjectTimesheetsBundle for Kimai 2.
+
+/*
+ * This file is part of the "Shared Project Timesheets Bundle" for Kimai.
  * All rights reserved by Fabian Vetter (https://vettersolutions.de).
  *
  * For the full copyright and license information, please view the LICENSE file
@@ -27,224 +28,146 @@ use Symfony\Component\Validator\Constraints as Assert;
 class SharedProjectTimesheet
 {
     /**
-     * @var int
-     *
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(name="id", type="integer")
      */
-    protected $id;
+    private ?int $id = null;
 
     /**
-     * @var Project
-     *
      * @ORM\ManyToOne(targetEntity="App\Entity\Project")
      * @ORM\JoinColumn(onDelete="CASCADE")
      * @Assert\NotNull()
      */
-    protected $project;
+    private ?Project $project = null;
 
     /**
-     * @var string
-     *
      * @ORM\Column(name="share_key", type="string", length=20, nullable=false)
      * @Assert\Length(max=20)
      */
-    protected $shareKey;
+    private ?string $shareKey = null;
 
     /**
-     * @var string
-     *
      * @ORM\Column(name="password", type="string", length=255, nullable=true)
      * @Assert\Length(max=255)
      */
-    protected $password;
+    private ?string $password = null;
 
     /**
-     * @var boolean
-     *
      * @ORM\Column(name="entry_user_visible", type="boolean", nullable=false)
      */
-    protected $entryUserVisible = false;
+    private bool $entryUserVisible = false;
 
     /**
-     * @var boolean
-     *
      * @ORM\Column(name="entry_rate_visible", type="boolean", nullable=false)
      */
-    protected $entryRateVisible = false;
+    private bool $entryRateVisible = false;
 
     /**
-     * @var string
-     *
      * @ORM\Column(name="record_merge_mode", type="string", length=50, nullable=false)
      * @Assert\Length(max=50)
      */
-    protected $recordMergeMode = RecordMergeMode::MODE_NONE;
+    private string $recordMergeMode = RecordMergeMode::MODE_NONE;
 
     /**
-     * @var boolean
-     *
      * @ORM\Column(name="annual_chart_visible", type="boolean", nullable=false)
      */
-    protected $annualChartVisible = false;
+    private bool $annualChartVisible = false;
 
     /**
-     * @var boolean
+     * @var bool
      *
      * @ORM\Column(name="monthly_chart_visible", type="boolean", nullable=false)
      */
-    protected $monthlyChartVisible = false;
+    protected bool $monthlyChartVisible = false;
 
-    /**
-     * @return Project
-     */
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
     public function getProject(): ?Project
     {
         return $this->project;
     }
 
-    /**
-     * @param Project $project
-     */
-    public function setProject(Project $project): SharedProjectTimesheet
+    public function setProject(Project $project): void
     {
         $this->project = $project;
-
-        return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getShareKey(): ?string
     {
         return $this->shareKey;
     }
 
-    /**
-     * @param string $shareKey
-     * @return SharedProjectTimesheet
-     */
-    public function setShareKey(string $shareKey): SharedProjectTimesheet
+    public function setShareKey(string $shareKey): void
     {
         $this->shareKey = $shareKey;
-
-        return $this;
     }
 
-    /**
-     * @return string|null
-     */
     public function getPassword(): ?string
     {
         return $this->password;
     }
 
-    /**
-     * @param string|null $password
-     * @return SharedProjectTimesheet
-     */
-    public function setPassword(?string $password): SharedProjectTimesheet
+    public function setPassword(?string $password): void
     {
         $this->password = $password;
-
-        return $this;
     }
 
-    /**
-     * @return bool
-     */
     public function isEntryUserVisible(): bool
     {
         return $this->entryUserVisible;
     }
 
-    /**
-     * @param bool $entryUserVisible
-     * @return SharedProjectTimesheet
-     */
-    public function setEntryUserVisible(bool $entryUserVisible): SharedProjectTimesheet
+    public function setEntryUserVisible(bool $entryUserVisible): void
     {
         $this->entryUserVisible = (bool) $entryUserVisible;
-
-        return $this;
     }
 
-    /**
-     * @return bool
-     */
     public function isEntryRateVisible(): bool
     {
         return $this->entryRateVisible;
     }
 
-    /**
-     * @param bool $entryRateVisible
-     * @return SharedProjectTimesheet
-     */
-    public function setEntryRateVisible(bool $entryRateVisible): SharedProjectTimesheet
+    public function setEntryRateVisible(bool $entryRateVisible): void
     {
         $this->entryRateVisible = (bool) $entryRateVisible;
-
-        return $this;
     }
 
-    /**
-     * @return string
-     */
+    public function hasRecordMerging(): bool
+    {
+        return $this->recordMergeMode !== RecordMergeMode::MODE_NONE;
+    }
+
     public function getRecordMergeMode(): string
     {
         return $this->recordMergeMode;
     }
 
-    /**
-     * @param string $recordMergeMode
-     * @return SharedProjectTimesheet
-     */
-    public function setRecordMergeMode(string $recordMergeMode): SharedProjectTimesheet
+    public function setRecordMergeMode(string $recordMergeMode): void
     {
         $this->recordMergeMode = $recordMergeMode;
-
-        return $this;
     }
 
-    /**
-     * @return bool
-     */
     public function isAnnualChartVisible(): bool
     {
         return $this->annualChartVisible;
     }
 
-    /**
-     * @param bool $annualChartVisible
-     * @return SharedProjectTimesheet
-     */
-    public function setAnnualChartVisible(bool $annualChartVisible): SharedProjectTimesheet
+    public function setAnnualChartVisible(bool $annualChartVisible): void
     {
         $this->annualChartVisible = $annualChartVisible;
-
-        return $this;
     }
 
-    /**
-     * @return bool
-     */
     public function isMonthlyChartVisible(): bool
     {
         return $this->monthlyChartVisible;
     }
 
-    /**
-     * @param bool $monthlyChartVisible
-     * @return SharedProjectTimesheet
-     */
-    public function setMonthlyChartVisible(bool $monthlyChartVisible): SharedProjectTimesheet
+    public function setMonthlyChartVisible(bool $monthlyChartVisible): void
     {
         $this->monthlyChartVisible = $monthlyChartVisible;
-
-        return $this;
     }
-
 }

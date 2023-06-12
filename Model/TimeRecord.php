@@ -1,6 +1,7 @@
 <?php
-/**
- * This file is part of the SharedProjectTimesheetsBundle for Kimai 2.
+
+/*
+ * This file is part of the "Shared Project Timesheets Bundle" for Kimai.
  * All rights reserved by Fabian Vetter (https://vettersolutions.de).
  *
  * For the full copyright and license information, please view the LICENSE file
@@ -9,129 +10,79 @@
 
 namespace KimaiPlugin\SharedProjectTimesheetsBundle\Model;
 
-
 use App\Entity\Timesheet;
 use App\Entity\User;
-use DateTime;
 
 /**
  * Class to represent the view time records.
  */
 class TimeRecord
 {
-
-    const VALID_MERGE_MODES = [
+    /** @var array<string> */
+    public const VALID_MERGE_MODES = [
         RecordMergeMode::MODE_MERGE,
         RecordMergeMode::MODE_MERGE_USE_FIRST_OF_DAY,
         RecordMergeMode::MODE_MERGE_USE_LAST_OF_DAY,
     ];
 
-    /**
-     * Create time record of timesheet entity.
-     * @param Timesheet $timesheet
-     * @param string $mergeMode
-     * @return TimeRecord
-     */
-    public static function fromTimesheet(Timesheet $timesheet, $mergeMode = RecordMergeMode::MODE_MERGE): TimeRecord {
-        if ( !in_array($mergeMode, self::VALID_MERGE_MODES) ) {
+    public static function fromTimesheet(Timesheet $timesheet, string $mergeMode = RecordMergeMode::MODE_MERGE): TimeRecord
+    {
+        if (!\in_array($mergeMode, self::VALID_MERGE_MODES)) {
             throw new \InvalidArgumentException("Invalid merge mode given: $mergeMode");
         }
 
-        return (new TimeRecord($timesheet->getBegin(), $timesheet->getUser(), $mergeMode))
-            ->addTimesheet($timesheet);
+        $record = new TimeRecord($timesheet->getBegin(), $timesheet->getUser(), $mergeMode);
+        $record->addTimesheet($timesheet);
+
+        return $record;
     }
 
+    private ?\DateTimeInterface $date = null;
+    private ?string $description = null;
     /**
-     * @var DateTime
+     * @var array<array{'hourlyRate': float, 'duration': int}>>
      */
-    private $date;
+    private array $hourlyRates = [];
+    private float $rate = 0.0;
+    private int $duration = 0;
+    private ?User $user = null;
+    private ?string $mergeMode = null;
 
-    /**
-     * @var string
-     */
-    private $description = null;
-
-    /**
-     * @var float[]
-     */
-    private $hourlyRates = [];
-
-    /**
-     * @var float
-     */
-    private $rate = 0.0;
-
-    /**
-     * @var int
-     */
-    private $duration = 0;
-
-    /**
-     * @var User
-     */
-    private $user;
-
-    /**
-     * @var string
-     */
-    private $mergeMode;
-
-    /**
-     * Private constructor, use fromTimesheet() to create instances.
-     * @param DateTime $date
-     * @param User $user
-     * @param string $mergeMode
-     */
-    private function __construct(DateTime $date, User $user, string $mergeMode)
+    private function __construct(\DateTimeInterface $date, User $user, string $mergeMode)
     {
         $this->date = $date;
         $this->user = $user;
         $this->mergeMode = $mergeMode;
     }
 
-    /**
-     * @return DateTime
-     */
-    public function getDate(): DateTime
+    public function getDate(): \DateTimeInterface
     {
         return $this->date;
     }
 
-    /**
-     * @return string
-     */
     public function getDescription(): ?string
     {
         return $this->description;
     }
 
     /**
-     * @return int[]
+     * @return array<array{'hourlyRate': float, 'duration': int}>>
      */
-    public function getHourlyRates()
+    public function getHourlyRates(): array
     {
         return $this->hourlyRates;
     }
 
-    /**
-     * @return float
-     */
-    public function getRate()
+    public function getRate(): float
     {
         return $this->rate;
     }
 
-    /**
-     * @return int
-     */
-    public function getDuration()
+    public function getDuration(): int
     {
         return $this->duration;
     }
 
-    /**
-     * @return User
-     */
     public function getUser(): User
     {
         return $this->user;
@@ -139,24 +90,22 @@ class TimeRecord
 
     // Helper methods
 
-    public function hasDifferentHourlyRates()
+    public function hasDifferentHourlyRates(): bool
     {
-        return count($this->hourlyRates) > 1;
+        return \count($this->hourlyRates) > 1;
     }
 
-    public function addTimesheet(Timesheet $timesheet)
+    public function addTimesheet(Timesheet $timesheet): void
     {
-        $this->addHourlyRate($timesheet->getHourlyRate(), $timesheet->getDuration())
-            ->addRate($timesheet->getRate())
-            ->addDuration($timesheet->getDuration())
-            ->setDescription($timesheet);
-
-        return $this;
+        $this->addHourlyRate($timesheet->getHourlyRate(), $timesheet->getDuration());
+        $this->addRate($timesheet->getRate());
+        $this->addDuration($timesheet->getDuration());
+        $this->setDescription($timesheet);
     }
 
-    protected function addHourlyRate($hourlyRate, $duration)
+    protected function addHourlyRate(?float $hourlyRate, ?int $duration): void
     {
-        if ( $hourlyRate > 0 && $duration > 0 ) {
+        if ($hourlyRate > 0 && $duration > 0) {
             $entryIndex = null;
             foreach ($this->hourlyRates as $index => $info) {
                 if ($info['hourlyRate'] === $hourlyRate) {
@@ -174,51 +123,42 @@ class TimeRecord
                 $this->hourlyRates[$entryIndex]['duration'] += $duration;
             }
         }
-
-        return $this;
     }
 
-    private function addRate(?float $rate)
+    private function addRate(?float $rate): void
     {
-        if ( $rate !== null ) {
+        if ($rate !== null) {
             $this->rate += $rate;
         }
-
-        return $this;
     }
 
-    private function addDuration(?int $duration)
+    private function addDuration(?int $duration): void
     {
-        if ( $duration !== null ) {
+        if ($duration !== null) {
             $this->duration += $duration;
         }
-
-        return $this;
     }
 
-    protected function setDescription(Timesheet $timesheet)
+    protected function setDescription(Timesheet $timesheet): void
     {
         $description = $timesheet->getDescription();
 
         // Merge description dependent on record merge mode
         if ($this->description === null) {
             $this->description = $description;
-        } else if ($this->mergeMode === RecordMergeMode::MODE_MERGE_USE_LAST_OF_DAY && $this->getDate() < $timesheet->getBegin()) {
+        } elseif ($this->mergeMode === RecordMergeMode::MODE_MERGE_USE_LAST_OF_DAY && $this->getDate() < $timesheet->getBegin()) {
             // Override description on last
             $this->description = $timesheet->getDescription();
-        } else if ($this->mergeMode === RecordMergeMode::MODE_MERGE) {
+        } elseif ($this->mergeMode === RecordMergeMode::MODE_MERGE) {
             // MODE_MERGE
-            if ($description !== null && strlen($description) > 0) {
+            if ($description !== null && \strlen($description) > 0) {
                 $this->description = (
-                   implode(PHP_EOL, [
+                    implode(PHP_EOL, [
                         $this->getDescription(),
                         $description
                     ])
                 );
             }
         }
-
-        return $this;
     }
-
 }

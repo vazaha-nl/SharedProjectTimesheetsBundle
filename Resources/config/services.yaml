@@ -6,7 +6,12 @@ services:
 
     KimaiPlugin\SharedProjectTimesheetsBundle\:
         resource: '../../*'
-        exclude: '../../{Resources}'
+        exclude:
+            - '../../Entity/'
+            - '../../Migrations/'
+            - '../../Model/'
+            - '../../Resources/'
+            - '../../tests/'
 
     KimaiPlugin\SharedProjectTimesheetsBundle\Controller\:
         resource: '../../Controller'

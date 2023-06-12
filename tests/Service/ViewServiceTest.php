@@ -1,6 +1,7 @@
 <?php
-/**
- * This file is part of the SharedProjectTimesheetsBundle for Kimai 2.
+
+/*
+ * This file is part of the "Shared Project Timesheets Bundle" for Kimai.
  * All rights reserved by Fabian Vetter (https://vettersolutions.de).
  *
  * For the full copyright and license information, please view the LICENSE file
@@ -9,18 +10,18 @@
 
 namespace KimaiPlugin\SharedProjectTimesheetsBundle\tests\Service;
 
-
 use App\Entity\Project;
 use App\Repository\TimesheetRepository;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Entity\SharedProjectTimesheet;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Service\ViewService;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\Security\Core\Encoder\PasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
+use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 
 class ViewServiceTest extends TestCase
 {
-
     /**
      * @var ViewService
      */
@@ -32,7 +33,7 @@ class ViewServiceTest extends TestCase
     private $session;
 
     /**
-     * @var PasswordEncoderInterface
+     * @var PasswordHasherInterface
      */
     private $encoder;
 
@@ -44,120 +45,125 @@ class ViewServiceTest extends TestCase
     protected function setUp(): void
     {
         $timesheetRepository = $this->createMock(TimesheetRepository::class);
+        $request = new RequestStack();
         $this->session = $this->createPartialMock(SessionInterface::class, []);
-        $this->encoder = $this->createMock(PasswordEncoderInterface::class);
 
-        $this->service = new ViewService($timesheetRepository, $this->session, $this->encoder);
+        $factory = $this->createMock(PasswordHasherFactoryInterface::class);
+        $this->encoder = $this->createMock(PasswordHasherInterface::class);
+        $factory->method('getPasswordHasher')->willReturn($this->encoder);
+
+        $this->service = new ViewService($timesheetRepository, $this->session, $factory);
     }
 
-    private function createSharedProjectTimesheet()
+    private function createSharedProjectTimesheet(): SharedProjectTimesheet
     {
         $project = $this->createMock(Project::class);
         $project->method('getId')
             ->willReturn(1);
 
-        return (new SharedProjectTimesheet())
-            ->setProject($project)
-            ->setShareKey("sharekey");
+        $tmp = new SharedProjectTimesheet();
+        $tmp->setProject($project);
+        $tmp->setShareKey('sharekey');
+
+        return $tmp;
     }
 
-    public function testNoPassword()
+    public function testNoPassword(): void
     {
         $sharedProjectTimesheet = $this->createSharedProjectTimesheet();
-        $hasAccess = $this->service->hasAccess($sharedProjectTimesheet, null);
+        $hasAccess = $this->service->hasAccess($sharedProjectTimesheet, '');
         self::assertTrue($hasAccess);
     }
 
-    public function testValidPassword()
+    public function testValidPassword(): void
     {
         $this->encoder->method('isPasswordValid')
-            ->willReturnCallback(function($hashedPassword, $givenPassword) {
+            ->willReturnCallback(function ($hashedPassword, $givenPassword) {
                 return $hashedPassword === $givenPassword;
             });
 
-        $sharedProjectTimesheet = ($this->createSharedProjectTimesheet())
-            ->setPassword("password");
+        $sharedProjectTimesheet = $this->createSharedProjectTimesheet();
+        $sharedProjectTimesheet->setPassword('password');
 
-        $hasAccess = $this->service->hasAccess($sharedProjectTimesheet, "password");
+        $hasAccess = $this->service->hasAccess($sharedProjectTimesheet, 'password');
         self::assertTrue($hasAccess);
     }
 
-    public function testInvalidPassword()
+    public function testInvalidPassword(): void
     {
         $this->encoder->method('isPasswordValid')
-            ->willReturnCallback(function($hashedPassword, $givenPassword) {
+            ->willReturnCallback(function ($hashedPassword, $givenPassword) {
                 return $hashedPassword === $givenPassword;
             });
 
-        $sharedProjectTimesheet = ($this->createSharedProjectTimesheet())
-            ->setPassword("password");
+        $sharedProjectTimesheet = $this->createSharedProjectTimesheet();
+        $sharedProjectTimesheet->setPassword('password');
 
-        $hasAccess = $this->service->hasAccess($sharedProjectTimesheet, "wrong");
+        $hasAccess = $this->service->hasAccess($sharedProjectTimesheet, 'wrong');
         self::assertFalse($hasAccess);
     }
 
-    public function testPasswordRemember()
+    public function testPasswordRemember(): void
     {
         // Mock session behaviour
         $this->session->expects($this->exactly(1))
             ->method('set')
-            ->willReturnCallback(function($key) {
+            ->willReturnCallback(function ($key) {
                 $this->sessionKey = $key;
             });
 
         $this->session->expects($this->exactly(2))
             ->method('has')
-            ->willReturnCallback(function($key) {
+            ->willReturnCallback(function ($key) {
                 return $key === $this->sessionKey;
             });
 
         // Expect the encoder->isPasswordValid method is called only once
         $this->encoder->expects($this->exactly(1))
             ->method('isPasswordValid')
-            ->willReturnCallback(function($hashedPassword, $givenPassword) {
+            ->willReturnCallback(function ($hashedPassword, $givenPassword) {
                 return $hashedPassword === $givenPassword;
             });
 
-        $sharedProjectTimesheet = ($this->createSharedProjectTimesheet())
-            ->setPassword("test");
+        $sharedProjectTimesheet = $this->createSharedProjectTimesheet();
+        $sharedProjectTimesheet->setPassword('test');
 
-        $this->service->hasAccess($sharedProjectTimesheet, "test");
-        $this->service->hasAccess($sharedProjectTimesheet, "test");
+        $this->service->hasAccess($sharedProjectTimesheet, 'test');
+        $this->service->hasAccess($sharedProjectTimesheet, 'test');
     }
 
-    public function testPasswordChange()
+    public function testPasswordChange(): void
     {
         // Mock session behaviour
         $this->session->expects($this->exactly(1))
             ->method('set')
-            ->willReturnCallback(function($key) {
+            ->willReturnCallback(function ($key) {
                 $this->sessionKey = $key;
             });
 
         $this->session->expects($this->exactly(2))
             ->method('has')
-            ->willReturnCallback(function($key) {
+            ->willReturnCallback(function ($key) {
                 return $key === $this->sessionKey;
             });
 
         // Expect the encoder->isPasswordValid method is called only once
         $this->encoder->expects($this->exactly(2))
             ->method('isPasswordValid')
-            ->willReturnCallback(function($hashedPassword, $givenPassword) {
+            ->willReturnCallback(function ($hashedPassword, $givenPassword) {
                 return $hashedPassword === $givenPassword;
             });
 
-        $sharedProjectTimesheet = ($this->createSharedProjectTimesheet())
-            ->setPassword("test");
+        $sharedProjectTimesheet = $this->createSharedProjectTimesheet();
+        $sharedProjectTimesheet->setPassword('test');
 
-        $hasAccess = $this->service->hasAccess($sharedProjectTimesheet, "test");
+        $hasAccess = $this->service->hasAccess($sharedProjectTimesheet, 'test');
         self::assertTrue($hasAccess);
 
-        $sharedProjectTimesheet = ($this->createSharedProjectTimesheet())
-            ->setPassword("changed");
+        $sharedProjectTimesheet = $this->createSharedProjectTimesheet();
+        $sharedProjectTimesheet->setPassword('changed');
 
-        $hasAccess = $this->service->hasAccess($sharedProjectTimesheet, "test");
+        $hasAccess = $this->service->hasAccess($sharedProjectTimesheet, 'test');
         self::assertFalse($hasAccess);
     }
-
 }

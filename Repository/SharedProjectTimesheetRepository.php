@@ -1,6 +1,7 @@
 <?php
-/**
- * This file is part of the SharedProjectTimesheetsBundle for Kimai 2.
+
+/*
+ * This file is part of the "Shared Project Timesheets Bundle" for Kimai.
  * All rights reserved by Fabian Vetter (https://vettersolutions.de).
  *
  * For the full copyright and license information, please view the LICENSE file
@@ -9,8 +10,11 @@
 
 namespace KimaiPlugin\SharedProjectTimesheetsBundle\Repository;
 
-
 use App\Entity\Project;
+use App\Repository\Loader\DefaultLoader;
+use App\Repository\Paginator\LoaderPaginator;
+use App\Repository\Query\BaseQuery;
+use App\Utils\Pagination;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Expr\Join;
@@ -18,49 +22,36 @@ use KimaiPlugin\SharedProjectTimesheetsBundle\Entity\SharedProjectTimesheet;
 
 class SharedProjectTimesheetRepository extends EntityRepository
 {
-
-    /**
-     * @return SharedProjectTimesheet[]
-     */
-    public function findAll()
+    public function findAllSharedProjects(BaseQuery $query): Pagination
     {
-        return $this->createQueryBuilder('spt')
+        $qb = $this->createQueryBuilder('spt')
             ->join(Project::class, 'p', Join::WITH, 'spt.project = p')
-            ->orderBy('p.name, spt.shareKey', 'ASC')
-            ->getQuery()
-            ->execute();
+            ->orderBy('p.name, spt.shareKey', 'ASC');
+
+        $loader = new LoaderPaginator(new DefaultLoader(), $qb, $this->count([]));
+
+        $paginator = new Pagination($loader);
+        $paginator->setMaxPerPage($query->getPageSize());
+        $paginator->setCurrentPage($query->getPage());
+
+        return $paginator;
     }
 
-    /**
-     * @param SharedProjectTimesheet $sharedProject
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
-     */
-    public function save(SharedProjectTimesheet $sharedProject)
+    public function save(SharedProjectTimesheet $sharedProject): void
     {
         $em = $this->getEntityManager();
         $em->persist($sharedProject);
         $em->flush();
     }
 
-    /**
-     * @param SharedProjectTimesheet $sharedProject
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
-     */
-    public function remove(SharedProjectTimesheet $sharedProject)
+    public function remove(SharedProjectTimesheet $sharedProject): void
     {
         $em = $this->getEntityManager();
         $em->remove($sharedProject);
         $em->flush();
     }
 
-    /**
-     * @param Project|int|null $project
-     * @param string|null $shareKey
-     * @return SharedProjectTimesheet|null
-     */
-    public function findByProjectAndShareKey($project, ?string $shareKey)
+    public function findByProjectAndShareKey(Project|int|null $project, ?string $shareKey): ?SharedProjectTimesheet
     {
         try {
             return $this->createQueryBuilder('spt')
@@ -76,5 +67,4 @@ class SharedProjectTimesheetRepository extends EntityRepository
             return null;
         }
     }
-
 }

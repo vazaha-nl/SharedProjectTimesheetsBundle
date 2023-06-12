@@ -1,0 +1,14 @@
+includes:
+    - %rootDir%/../phpstan-doctrine/extension.neon
+    - %rootDir%/../phpstan-symfony/extension.neon
+    - %rootDir%/../phpstan-symfony/rules.neon
+
+parameters:
+    level: 7
+    excludePaths:
+        - vendor/
+        - tests/
+    treatPhpDocTypesAsCertain: false
+    inferPrivatePropertyTypeFromConstructor: true
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false

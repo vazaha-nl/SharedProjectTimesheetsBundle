@@ -1,6 +1,7 @@
 <?php
-/**
- * This file is part of the SharedProjectTimesheetsBundle for Kimai 2.
+
+/*
+ * This file is part of the "Shared Project Timesheets Bundle" for Kimai.
  * All rights reserved by Fabian Vetter (https://vettersolutions.de).
  *
  * For the full copyright and license information, please view the LICENSE file
@@ -9,13 +10,11 @@
 
 namespace KimaiPlugin\SharedProjectTimesheetsBundle\tests\Model;
 
-
 use KimaiPlugin\SharedProjectTimesheetsBundle\Model\ChartStat;
 use PHPUnit\Framework\TestCase;
 
 class ChartStatTest extends TestCase
 {
-
     public function testDefault(): void
     {
         $chartStat = new ChartStat();
@@ -32,5 +31,4 @@ class ChartStatTest extends TestCase
         self::assertEquals(1, $chartStat->getDuration());
         self::assertEquals(2.2, $chartStat->getRate());
     }
-
 }

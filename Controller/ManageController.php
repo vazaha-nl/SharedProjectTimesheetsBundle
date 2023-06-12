@@ -1,6 +1,7 @@
 <?php
-/**
- * This file is part of the SharedProjectTimesheetsBundle for Kimai 2.
+
+/*
+ * This file is part of the "Shared Project Timesheets Bundle" for Kimai.
  * All rights reserved by Fabian Vetter (https://vettersolutions.de).
  *
  * For the full copyright and license information, please view the LICENSE file
@@ -10,185 +11,154 @@
 namespace KimaiPlugin\SharedProjectTimesheetsBundle\Controller;
 
 use App\Controller\AbstractController;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
+use App\Repository\Query\BaseQuery;
+use App\Utils\DataTable;
+use App\Utils\PageSetup;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Entity\SharedProjectTimesheet;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Form\SharedProjectFormType;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Model\RecordMergeMode;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Repository\SharedProjectTimesheetRepository;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Service\ManageService;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-/**
- * @Route(path="/admin/shared-project-timesheets")
- * @Security("is_granted('ROLE_SUPER_ADMIN')")
- */
+#[Route(path: '/shared-project-timesheets')]
+#[IsGranted('shared_projects')]
 class ManageController extends AbstractController
 {
-    /**
-     * @var SharedProjectTimesheetRepository
-     */
-    protected $shareProjectTimesheetRepository;
-
-    /**
-     * @var ManageService
-     */
-    private $manageService;
-
-    /**
-     * @var TranslatorInterface
-     */
-    private $translator;
-
-    /**
-     * @param SharedProjectTimesheetRepository $shareProjectTimesheetRepository
-     * @param ManageService $manageService
-     * @param TranslatorInterface $translator
-     */
     public function __construct(
-        SharedProjectTimesheetRepository $shareProjectTimesheetRepository,
-        ManageService $manageService,
-        TranslatorInterface $translator
+        private SharedProjectTimesheetRepository $shareProjectTimesheetRepository,
+        private ManageService $manageService
     ) {
-        $this->shareProjectTimesheetRepository = $shareProjectTimesheetRepository;
-        $this->manageService = $manageService;
-        $this->translator = $translator;
     }
 
-    /**
-     * @Route(path="", name="manage_shared_project_timesheets", methods={"GET"})
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function index()
+    #[Route(path: '', name: 'manage_shared_project_timesheets', methods: ['GET'])]
+    public function index(): Response
     {
-        $sharedProjects = $this->shareProjectTimesheetRepository->findAll();
+        $query = new BaseQuery();
 
-        return $this->render(
-            '@SharedProjectTimesheets/manage/index.html.twig',
-            [
-                'sharedProjects' => $sharedProjects,
-                'mergeModeNone' => RecordMergeMode::MODE_NONE,
-                'mergeModeMerge' => RecordMergeMode::MODE_MERGE,
-                'mergeModeUseFirst' => RecordMergeMode::MODE_MERGE_USE_FIRST_OF_DAY,
-                'mergeModeUseLast' => RecordMergeMode::MODE_MERGE_USE_LAST_OF_DAY,
-                'RecordMergeMode' => RecordMergeMode::getModes(),
-            ]
-        );
+        $sharedProjects = $this->shareProjectTimesheetRepository->findAllSharedProjects($query);
+
+        $table = new DataTable('shared_project_timesheets_manage', $query);
+        $table->setPagination($sharedProjects);
+        $table->setReloadEvents('kimai.sharedProject');
+
+        $table->addColumn('name', ['class' => 'alwaysVisible', 'orderBy' => false]);
+        $table->addColumn('url', ['class' => 'alwaysVisible', 'orderBy' => false]);
+        $table->addColumn('password', ['class' => 'd-none', 'orderBy' => false]);
+        $table->addColumn('record_merge_mode', ['class' => 'd-none text-center w-min', 'orderBy' => false, 'title' => 'shared_project_timesheets.manage.table.record_merge_mode']);
+        $table->addColumn('entry_user_visible', ['class' => 'd-none text-center w-min', 'orderBy' => false, 'title' => 'shared_project_timesheets.manage.table.entry_user_visible']);
+        $table->addColumn('entry_rate_visible', ['class' => 'd-none text-center w-min', 'orderBy' => false, 'title' => 'shared_project_timesheets.manage.table.entry_rate_visible']);
+        $table->addColumn('annual_chart_visible', ['class' => 'd-none text-center w-min', 'orderBy' => false, 'title' => 'shared_project_timesheets.manage.table.annual_chart_visible']);
+        $table->addColumn('monthly_chart_visible', ['class' => 'd-none text-center w-min', 'orderBy' => false, 'title' => 'shared_project_timesheets.manage.table.monthly_chart_visible']);
+
+        $table->addColumn('actions', ['class' => 'actions alwaysVisible']);
+
+        $page = new PageSetup('shared_project_timesheets.manage.title');
+        $page->setActionName('shared_projects');
+        $page->setDataTable($table);
+
+        return $this->render('@SharedProjectTimesheets/manage/index.html.twig', [
+            'page_setup' => $page,
+            'dataTable' => $table,
+            'RecordMergeMode' => RecordMergeMode::getModes(),
+        ]);
     }
 
-    /**
-     * @Route(path="/create", name="create_shared_project_timesheets", methods={"GET","POST"})
-     * @param Request $request
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function create(Request $request)
+    #[Route(path: '/create', name: 'create_shared_project_timesheets', methods: ['GET', 'POST'])]
+    public function create(Request $request): Response
     {
         $sharedProject = new SharedProjectTimesheet();
 
-        $form = $this->createForm(SharedProjectFormType::class, $sharedProject);
+        $form = $this->createForm(SharedProjectFormType::class, $sharedProject, [
+            'method' => 'POST',
+            'action' => $this->generateUrl('create_shared_project_timesheets')
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
                 $this->manageService->create($sharedProject, $form->get('password')->getData());
-                $this->flashSuccess($this->translator->trans('shared_project_timesheets.manage.persist.success'));
+                $this->flashSuccess('action.update.success');
+
                 return $this->redirectToRoute('manage_shared_project_timesheets');
-            } catch (OptimisticLockException | ORMException $e) {
-                $this->logException($e);
-                $this->flashError($this->translator->trans('shared_project_timesheets.manage.persist.error'));
+            } catch (\Exception $e) {
+                $this->flashUpdateException($e);
             }
         }
 
-        return $this->render(
-            '@SharedProjectTimesheets/manage/edit.html.twig',
-            [
-                'form' => $form->createView(),
-                'type' => 'create',
-            ]
-        );
+        return $this->render('@SharedProjectTimesheets/manage/edit.html.twig', [
+            'entity' => $sharedProject,
+            'form' => $form->createView(),
+        ]);
     }
 
-    /**
-     * @Route(path="/{projectId}/{shareKey}", name="update_shared_project_timesheets", methods={"GET", "POST"})
-     * @param Request $request
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function update(Request $request)
+    #[Route(path: '/{projectId}/{shareKey}', name: 'update_shared_project_timesheets', methods: ['GET', 'POST'])]
+    public function update(string $projectId, string $shareKey, Request $request): Response
     {
-        $projectId = $request->get('projectId');
-        $shareKey = $request->get('shareKey');
-
         if ($projectId == null || $shareKey == null) {
-            throw new NotFoundHttpException("Project not found");
+            throw $this->createNotFoundException('Project not found');
         }
 
-        /* @var $sharedProject SharedProjectTimesheet */
+        /** @var SharedProjectTimesheet $sharedProject */
         $sharedProject = $this->shareProjectTimesheetRepository->findOneBy(['project' => $projectId, 'shareKey' => $shareKey]);
         if ($sharedProject === null) {
-            throw new NotFoundHttpException("Project not found");
+            throw $this->createNotFoundException('Given project not found');
         }
 
         // Store data in temporary SharedProjectTimesheet object
-        $form = $this->createForm(SharedProjectFormType::class, $sharedProject);
+        $form = $this->createForm(SharedProjectFormType::class, $sharedProject, [
+            'method' => 'POST',
+            'action' => $this->generateUrl('update_shared_project_timesheets', ['projectId' => $projectId, 'shareKey' => $shareKey])
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
                 $this->manageService->update($sharedProject, $form->get('password')->getData());
-                $this->flashSuccess($this->translator->trans('shared_project_timesheets.manage.persist.success'));
+                $this->flashSuccess('action.update.success');
+
                 return $this->redirectToRoute('manage_shared_project_timesheets');
-            } catch (OptimisticLockException | ORMException $e) {
-                $this->logException($e);
-                $this->flashError($this->translator->trans('shared_project_timesheets.manage.persist.error'));
+            } catch (\Exception $e) {
+                $this->flashUpdateException($e);
             }
-        } else if ( !$form->isSubmitted() ) {
-            if ( !empty($sharedProject->getPassword()) ) {
+        } elseif (!$form->isSubmitted()) {
+            if (!empty($sharedProject->getPassword())) {
                 $form->get('password')->setData(ManageService::PASSWORD_DO_NOT_CHANGE_VALUE);
             }
         }
 
-        return $this->render(
-            '@SharedProjectTimesheets/manage/edit.html.twig',
-            [
-                'form' => $form->createView(),
-                'type' => 'update',
-            ]
-        );
+        return $this->render('@SharedProjectTimesheets/manage/edit.html.twig', [
+            'entity' => $sharedProject,
+            'form' => $form->createView(),
+        ]);
     }
 
-    /**
-     * @Route(path="/{projectId}/{shareKey}/remove", name="remove_shared_project_timesheets", methods={"GET"})
-     * @param Request $request
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function remove(Request $request)
+    #[Route(path: '/{projectId}/{shareKey}/remove', name: 'remove_shared_project_timesheets', methods: ['GET', 'POST'])]
+    public function remove(Request $request): Response
     {
         $projectId = $request->get('projectId');
         $shareKey = $request->get('shareKey');
 
         if ($projectId == null || $shareKey == null) {
-            throw new NotFoundHttpException("Project not found");
+            throw $this->createNotFoundException('Project not found');
         }
 
-        /* @var $sharedProject SharedProjectTimesheet */
+        /** @var SharedProjectTimesheet $sharedProject */
         $sharedProject = $this->shareProjectTimesheetRepository->findOneBy(['project' => $projectId, 'shareKey' => $shareKey]);
         if (!$sharedProject || $sharedProject->getProject() === null || $sharedProject->getShareKey() === null) {
-            throw new NotFoundHttpException("Project not found");
+            throw $this->createNotFoundException('Given project not found');
         }
 
         try {
             $this->shareProjectTimesheetRepository->remove($sharedProject);
-            $this->flashSuccess($this->translator->trans('shared_project_timesheets.manage.persist.success'));
-        } catch (OptimisticLockException | ORMException $e) {
-            $this->logException($e);
-            $this->flashError($this->translator->trans('shared_project_timesheets.manage.persist.error'));
+            $this->flashSuccess('action.delete.success');
+        } catch (\Exception $ex) {
+            $this->flashDeleteException($ex);
         }
 
         return $this->redirectToRoute('manage_shared_project_timesheets');
     }
-
 }

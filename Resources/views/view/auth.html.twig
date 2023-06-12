@@ -1,24 +1,26 @@
-{% extends '@SharedProjectTimesheets/top-nav-layout/base.html.twig' %}
+{% extends '@theme/fullpage.html.twig' %}
 
-{% block page_title %}{{ 'shared_project_timesheets.view.auth.title' | trans }} {{ project.name }}{% endblock %}
-{% block page_subtitle %}{% endblock %}
+{% block page_content %}
+    <div class="container container-tight py-4">
+        <div class="text-center mb-4">
+            <h1>{{ 'shared_project_timesheets.view.auth.title' | trans }} <br> {{ project.name }}</h1>
+        </div>
 
-{% block main %}
-    <form action="{{ app.request.uri }}" method="POST">
-        <div class="box box-secondary">
-            <div class="box-body">
-                {% if invalidPassword %}
-                    <div class="alert alert-danger">{{ 'shared_project_timesheets.view.auth.invalid_password' | trans }}</div>
-                {% endif %}
-                <p>{{ 'shared_project_timesheets.view.auth.description' | trans }}</p>
-                <p>
-                    <label for="spt-password">{{ 'shared_project_timesheets.view.auth.password_label' | trans }}</label>
-                    <input type="password" id="spt-password" name="spt-password">
-                </p>
-            </div>
-            <div class="box-footer">
-                <button type="submit" class="btn btn-primary">{{ 'shared_project_timesheets.view.auth.send' | trans }}</button>
+        <div class="card card-md">
+            <div class="card-body">
+                <form action="{{ app.request.uri }}" method="POST">
+                    {% if invalidPassword %}
+                        <div class="alert alert-danger">{{ 'shared_project_timesheets.view.auth.invalid_password' | trans }}</div>
+                    {% endif %}
+                    <p>{{ 'shared_project_timesheets.view.auth.description' | trans }}</p>
+
+                    <div class="mb-3">
+                        <input type="text" id="spt-password" name="spt-password" class="form-control" placeholder="{{ 'password' | trans }}" required="required">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">{{ 'Sign In' | trans({}, 'TablerBundle') }}</button>
+                </form>
             </div>
         </div>
-    </form>
+    </div>
 {% endblock %}
