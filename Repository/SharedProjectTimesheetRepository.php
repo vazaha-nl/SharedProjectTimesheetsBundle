@@ -30,11 +30,7 @@ class SharedProjectTimesheetRepository extends EntityRepository
 
         $loader = new LoaderPaginator(new DefaultLoader(), $qb, $this->count([]));
 
-        $paginator = new Pagination($loader);
-        $paginator->setMaxPerPage($query->getPageSize());
-        $paginator->setCurrentPage($query->getPage());
-
-        return $paginator;
+        return new Pagination($loader, $query);
     }
 
     public function save(SharedProjectTimesheet $sharedProject): void

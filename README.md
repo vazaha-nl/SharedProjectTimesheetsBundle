@@ -28,6 +28,7 @@ This plugin is compatible with the following Kimai releases:
 
 | Bundle version | Minimum Kimai version |
 |----------------|-----------------------|
+| 3.0.1          | 2.0.33                |
 | 3.0.0          | 2.0.26                |
 
 First clone this plugin to your Kimai installation `plugins` directory:
