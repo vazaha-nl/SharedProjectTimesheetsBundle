@@ -22,7 +22,7 @@
     ],
     "extra": {
         "kimai": {
-            "require": 20033,
+            "require": 20100,
             "name": "Shared-Projects"
         }
     },
@@ -33,7 +33,6 @@
     },
     "config": {
         "allow-plugins": {
-            "composer/package-versions-deprecated": false,
             "symfony/flex": false,
             "symfony/runtime": false
         },
