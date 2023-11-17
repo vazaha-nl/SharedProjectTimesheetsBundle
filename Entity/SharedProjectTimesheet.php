@@ -13,73 +13,49 @@ namespace KimaiPlugin\SharedProjectTimesheetsBundle\Entity;
 use App\Entity\Project;
 use Doctrine\ORM\Mapping as ORM;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Model\RecordMergeMode;
+use KimaiPlugin\SharedProjectTimesheetsBundle\Repository\SharedProjectTimesheetRepository;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * @ORM\Table(name="kimai2_shared_project_timesheets",
- *     indexes={
- *          @ORM\Index(columns={"project_id"}),
- *          @ORM\Index(columns={"share_key"}),
- *          @ORM\Index(columns={"project_id", "share_key"}),
- *     }
- * )
- * @ORM\Entity(repositoryClass="KimaiPlugin\SharedProjectTimesheetsBundle\Repository\SharedProjectTimesheetRepository")
- */
+#[ORM\Table(name: 'kimai2_shared_project_timesheets')]
+#[ORM\Index(columns: ['project_id'])]
+#[ORM\Index(columns: ['share_key'])]
+#[ORM\Index(columns: ['project_id', 'share_key'])]
+#[ORM\Entity(repositoryClass: SharedProjectTimesheetRepository::class)]
 class SharedProjectTimesheet
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(name="id", type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
+    #[ORM\Column(name: 'id', type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Project")
-     * @ORM\JoinColumn(onDelete="CASCADE")
-     * @Assert\NotNull()
-     */
+    #[ORM\ManyToOne(targetEntity: Project::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    #[Assert\NotNull]
     private ?Project $project = null;
 
-    /**
-     * @ORM\Column(name="share_key", type="string", length=20, nullable=false)
-     * @Assert\Length(max=20)
-     */
+    #[ORM\Column(name: 'share_key', type: 'string', length: 20, nullable: false)]
+    #[Assert\Length(max: 20)]
     private ?string $shareKey = null;
 
-    /**
-     * @ORM\Column(name="password", type="string", length=255, nullable=true)
-     * @Assert\Length(max=255)
-     */
+    #[ORM\Column(name: 'password', type: 'string', length: 255, nullable: true)]
+    #[Assert\Length(max: 255)]
     private ?string $password = null;
 
-    /**
-     * @ORM\Column(name="entry_user_visible", type="boolean", nullable=false)
-     */
+    #[ORM\Column(name: 'entry_user_visible', type: 'boolean', nullable: false)]
     private bool $entryUserVisible = false;
 
-    /**
-     * @ORM\Column(name="entry_rate_visible", type="boolean", nullable=false)
-     */
+    #[ORM\Column(name: 'entry_rate_visible', type: 'boolean', nullable: false)]
     private bool $entryRateVisible = false;
 
-    /**
-     * @ORM\Column(name="record_merge_mode", type="string", length=50, nullable=false)
-     * @Assert\Length(max=50)
-     */
+    #[ORM\Column(name: 'record_merge_mode', type: 'string', length: 50, nullable: false)]
+    #[Assert\Length(max: 50)]
     private string $recordMergeMode = RecordMergeMode::MODE_NONE;
 
-    /**
-     * @ORM\Column(name="annual_chart_visible", type="boolean", nullable=false)
-     */
+    #[ORM\Column(name: 'annual_chart_visible', type: 'boolean', nullable: false)]
     private bool $annualChartVisible = false;
 
-    /**
-     * @var bool
-     *
-     * @ORM\Column(name="monthly_chart_visible", type="boolean", nullable=false)
-     */
-    protected bool $monthlyChartVisible = false;
+    #[ORM\Column(name: 'monthly_chart_visible', type: 'boolean', nullable: false)]
+    private bool $monthlyChartVisible = false;
 
     public function getId(): ?int
     {

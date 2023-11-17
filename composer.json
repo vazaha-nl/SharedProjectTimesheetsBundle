@@ -3,7 +3,7 @@
     "description": "Share project timesheets with anyone",
     "homepage": "https://github.com/Keleo/SharedProjectTimesheetsBundle",
     "type": "kimai-plugin",
-    "version": "3.0.1",
+    "version": "3.0.2",
     "keywords": [
         "kimai",
         "kimai-plugin"
