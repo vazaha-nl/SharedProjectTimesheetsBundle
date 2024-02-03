@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.1.0
+
+Compatibility: requires minimum Kimai 2.11.0
+
+- Changes in CSS files, required for Kimai 2.11.0 build
+
 ## 3.0.2
 
 Compatibility: requires minimum Kimai 2.1.0

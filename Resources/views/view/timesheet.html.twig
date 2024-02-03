@@ -4,8 +4,11 @@
 {% block title %}{{ 'shared_project_timesheets.view.title' | trans }} {{ sharedProject.project.name }}{% endblock %}
 
 {% block stylesheets %}
-    {{ parent() }}
-    {{ encore_entry_link_tags('app') }}
+    {% if tabler_bundle.isRightToLeft() %}
+        {{ encore_entry_link_tags('app-rtl') }}
+    {% else %}
+        {{ encore_entry_link_tags('app') }}
+    {% endif %}
     {{ encore_entry_link_tags('chart') }}
 {% endblock %}
 
