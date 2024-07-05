@@ -24,23 +24,19 @@
 <div class="p-4">
 
     <h2 class="page-title mb-3">
-        <span class="pe-2">{{ sharedProject.project.name }}</span>
 
-        <div class="btn-group select-container pe-2">
+        <div class="btn-group pe-2">
             <a class="btn btn-default{% if month <= 1 %} disabled{% endif %}"
                {% if month > 1 %}href="{{ app.request.pathinfo }}?year={{ year }}&month={{ month - 1 }}{% if detailsMode != 'table' %}&details={{ detailsMode }}{% endif %}"{% endif %}>
                 <i class="fa fa-caret-left"></i>
             </a>
-            <div class="btn-group select-container">
+            <div class="btn-group" role="group">
                 <button type="button" class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     {{ ('shared_project_timesheets.view.month.' ~ month) | trans }}
                 </button>
-                <button type="button" class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <span class="caret"></span>
-                </button>
                 <ul class="dropdown-menu dropdown-menu-start pre-scrollable">
                     {% for i in 1..12 %}
-                        <a href="{{ app.request.pathinfo }}?year={{ year }}&month={{ i }}{% if detailsMode != 'table' %}&details={{ detailsMode }}{% endif %}" class="dropdown-item {{ i == month ? 'active' : '' }}">{{ ('shared_project_timesheets.view.month.' ~ i) | trans }}</a>
+                        <li><a href="{{ app.request.pathinfo }}?year={{ year }}&month={{ i }}{% if detailsMode != 'table' %}&details={{ detailsMode }}{% endif %}" class="dropdown-item {{ i == month ? 'active' : '' }}">{{ ('shared_project_timesheets.view.month.' ~ i) | trans }}</a></li>
                     {% endfor %}
                 </ul>
             </div>
@@ -58,12 +54,9 @@
                 <button type="button" class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     {{ year }}
                 </button>
-                <button type="button" class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <span class="caret"></span>
-                </button>
                 <ul class="dropdown-menu dropdown-menu-start pre-scrollable">
                     {% for i in (year - 5)..(year + 5) %}
-                        <a href="{{ app.request.pathinfo }}?year={{ i }}&month={{ month }}{% if detailsMode != 'table' %}&details={{ detailsMode }}{% endif %}" class="dropdown-item {{ i == year ? 'active' : '' }}"> {{ i }} </a>
+                        <li><a href="{{ app.request.pathinfo }}?year={{ i }}&month={{ month }}{% if detailsMode != 'table' %}&details={{ detailsMode }}{% endif %}" class="dropdown-item {{ i == year ? 'active' : '' }}"> {{ i }} </a></li>
                     {% endfor %}
                 </ul>
             </div>
@@ -71,6 +64,8 @@
                 <i class="fa fa-caret-right"></i>
             </a>
         </div>
+
+        <span class="ps-2">{{ sharedProject.project.name }}</span>
     </h2>
 
     {% if statsPerMonth != null %}
