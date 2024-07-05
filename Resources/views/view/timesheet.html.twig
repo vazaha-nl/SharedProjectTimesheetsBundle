@@ -186,14 +186,7 @@
                                 {{ 'budget' | trans }}
                             </td>
                             <td>
-                                {{
-                                    progress.progressbar(
-                                        stats.getBudget(),
-                                        stats.getBudgetSpent(),
-                                        'billable' | trans,
-                                        stats.getBudgetSpent() | money(currency) ~ ' / ' ~ stats.getBudget() | money(currency)
-                                    )
-                                }}
+                                {{ progress.progressbar_budget(stats, currency) }}
                             </td>
                         </tr>
                     {% endif %}
@@ -203,14 +196,7 @@
                                 {{ 'timeBudget' | trans }}
                             </td>
                             <td>
-                                {{
-                                    progress.progressbar(
-                                        stats.getTimeBudget(),
-                                        stats.getTimeBudgetSpent(),
-                                        'billable' | trans,
-                                        stats.getTimeBudgetSpent() | duration ~ ' / ' ~ stats.getTimeBudget() | duration
-                                    )
-                                }}
+                                {{ progress.progressbar_timebudget(stats) }}
                             </td>
                         </tr>
                     {% endif %}
