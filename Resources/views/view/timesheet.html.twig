@@ -13,9 +13,13 @@
 {% endblock %}
 
 {% block head %}
-    {{ parent() }}
     {{ encore_entry_script_tags('app') }}
     {{ encore_entry_script_tags('chart') }}
+{% endblock %}
+
+{% block javascripts %}
+    {% import "macros/webloader.html.twig" as webloader %}
+    {{ webloader.init_frontend_loader() }}
 {% endblock %}
 
 {% block page_classes %}page{% endblock %}
@@ -32,11 +36,13 @@
             </a>
             <div class="btn-group" role="group">
                 <button type="button" class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    {{ ('shared_project_timesheets.view.month.' ~ month) | trans }}
+                    {% set tmpMonth = report_date(year, month) %}
+                    {{ tmpMonth|month_name }}
                 </button>
                 <ul class="dropdown-menu dropdown-menu-start pre-scrollable">
                     {% for i in 1..12 %}
-                        <li><a href="{{ app.request.pathinfo }}?year={{ year }}&month={{ i }}{% if detailsMode != 'table' %}&details={{ detailsMode }}{% endif %}" class="dropdown-item {{ i == month ? 'active' : '' }}">{{ ('shared_project_timesheets.view.month.' ~ i) | trans }}</a></li>
+                        {% set tmpMonth = report_date(year, i) %}
+                        <li><a href="{{ app.request.pathinfo }}?year={{ year }}&month={{ i }}{% if detailsMode != 'table' %}&details={{ detailsMode }}{% endif %}" class="dropdown-item {{ i == month ? 'active' : '' }}">{{ tmpMonth|month_name }}</a></li>
                     {% endfor %}
                 </ul>
             </div>
@@ -68,7 +74,7 @@
         <span class="ps-2">{{ sharedProject.project.name }}</span>
     </h2>
 
-    {% if statsPerMonth != null %}
+    {% if statsPerMonth is not null %}
     <div class="row mb-3">
         <div class="col-md-12">
             <div class="card">
@@ -99,10 +105,10 @@
                 </div>
             {% endif %}
         </div>
-        <div class="card-body{% if timeRecords is not empty%} p-0{% endif %}">
+        <div class="card-body{% if timeRecords is not empty and statsPerDay is null %} p-0{% endif %}">
             {% if timeRecords is empty %}
                 {{ nothing_found() }}
-            {% elseif statsPerDay == null %}
+            {% elseif statsPerDay is null %}
                 <table class="table table-vcenter table-hover dataTable">
                     <thead>
                         <tr>
@@ -111,7 +117,7 @@
                             <th>{{ 'shared_project_timesheets.view.table.user' | trans }}</th>
                             {% endif %}
                             <th>{{ 'shared_project_timesheets.view.table.description' | trans }}</th>
-                            <th class="w-min">{{ 'shared_project_timesheets.view.table.duration' | trans }}</th>
+                            <th class="w-min">{{ 'duration'|trans }}</th>
                             {% if sharedProject.entryRateVisible %}
                             <th class="w-min">{{ 'hourlyRate' | trans }}</th>
                             <th class="w-min">{{ 'total_rate' | trans }}</th>
