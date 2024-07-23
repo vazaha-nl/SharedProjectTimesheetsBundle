@@ -57,6 +57,12 @@ class SharedProjectTimesheet
     #[ORM\Column(name: 'monthly_chart_visible', type: 'boolean', nullable: false)]
     private bool $monthlyChartVisible = false;
 
+    #[ORM\Column(name: 'budget_stats_visible', type: 'boolean', nullable: false)]
+    private bool $budgetStatsVisible = false;
+
+    #[ORM\Column(name: 'time_budget_stats_visible', type: 'boolean', nullable: false)]
+    private bool $timeBudgetStatsVisible = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -145,5 +151,25 @@ class SharedProjectTimesheet
     public function setMonthlyChartVisible(bool $monthlyChartVisible): void
     {
         $this->monthlyChartVisible = $monthlyChartVisible;
+    }
+
+    public function isBudgetStatsVisible(): bool
+    {
+        return $this->budgetStatsVisible;
+    }
+
+    public function setBudgetStatsVisible(bool $budgetStatsVisible): void
+    {
+        $this->budgetStatsVisible = $budgetStatsVisible;
+    }
+
+    public function isTimeBudgetStatsVisible(): bool
+    {
+        return $this->timeBudgetStatsVisible;
+    }
+
+    public function setTimeBudgetStatsVisible(bool $timeBudgetStatsVisible): void
+    {
+        $this->timeBudgetStatsVisible = $timeBudgetStatsVisible;
     }
 }

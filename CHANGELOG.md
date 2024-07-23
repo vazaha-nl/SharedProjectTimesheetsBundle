@@ -5,6 +5,7 @@
 Compatibility: requires minimum Kimai 2.19.0
 
 - Fix dropdowns
+- Feature: added configuration to toggle financial- and time budget statistics
 
 ## 3.1.0
 
