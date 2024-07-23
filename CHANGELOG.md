@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.2.0
+
+Compatibility: requires minimum Kimai 2.19.0
+
+- Fix dropdowns
+
 ## 3.1.0
 
 Compatibility: requires minimum Kimai 2.11.0
