@@ -22,6 +22,9 @@ shared_project_timesheets:
             chart_options: Diagramme - Optionen
             annual_chart_visible: Jahresdiagramm sichtbar
             monthly_chart_visible: Monatsdiagramm sichtbar
+            statistics_options: Projektstatistiken - Optionen
+            budget_stats_visible: Budgetstatistiken sichtbar
+            time_budget_stats_visible: Zeitbudgetstatistiken sichtbar
         table:
             name: Name des Projekts
             url: Link

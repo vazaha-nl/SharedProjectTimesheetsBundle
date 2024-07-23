@@ -167,7 +167,7 @@
         </div>
     </div>
 
-    {% if stats.hasBudget() or stats.hasTimeBudget() %}
+    {% if ((stats.hasBudget() and sharedProject.isBudgetStatsVisible()) or (stats.hasTimeBudget() and sharedProject.isTimeBudgetStatsVisible())) %}
         {% import "macros/progressbar.html.twig" as progress %}
         <div class="card">
             <div class="card-header">
@@ -175,7 +175,7 @@
             </div>
             <div class="card-body p-0">
                 <table class="table table-hover dataTable">
-                    {% if stats.hasBudget() %}
+                    {% if stats.hasBudget() and sharedProject.isBudgetStatsVisible() %}
                         <tr>
                             <td>
                                 {{ 'budget' | trans }}
@@ -185,7 +185,7 @@
                             </td>
                         </tr>
                     {% endif %}
-                    {% if stats.hasTimeBudget() %}
+                    {% if stats.hasTimeBudget() and sharedProject.isTimeBudgetStatsVisible() %}
                         <tr>
                             <td>
                                 {{ 'timeBudget' | trans }}

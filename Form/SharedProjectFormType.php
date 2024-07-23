@@ -77,6 +77,22 @@ class SharedProjectFormType extends AbstractType
                         'label' => 'shared_project_timesheets.manage.form.monthly_chart_visible',
                         'required' => false,
                     ])
+            )
+            ->add(
+                $builder
+                    ->create('statisticsOptions', FormType::class, [
+                        'label' => 'shared_project_timesheets.manage.form.statistics_options',
+                        'inherit_data' => true,
+                        'required' => false,
+                    ])
+                    ->add('budgetStatsVisible', YesNoType::class, [
+                        'label' => 'shared_project_timesheets.manage.form.budget_stats_visible',
+                        'required' => false,
+                    ])
+                    ->add('timeBudgetStatsVisible', YesNoType::class, [
+                        'label' => 'shared_project_timesheets.manage.form.time_budget_stats_visible',
+                        'required' => false,
+                    ])
             );
     }
 
