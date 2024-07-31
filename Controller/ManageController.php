@@ -108,10 +108,10 @@ class ManageController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/{projectId}/{shareKey}', name: 'update_shared_project_timesheets', methods: ['GET', 'POST'])]
-    public function update(string $projectId, string $shareKey, Request $request): Response
+    #[Route(path: '/{id}/{shareKey}', name: 'update_shared_project_timesheets', methods: ['GET', 'POST'])]
+    public function update(SharedProjectTimesheet $sharedProject, string $shareKey, Request $request): Response
     {
-        if ($projectId == null || $shareKey == null) {
+        if ($shareKey == null || $sharedProject->getShareKey() !== $shareKey) {
             throw $this->createNotFoundException('Project not found');
         }
 
@@ -120,9 +120,8 @@ class ManageController extends AbstractController
             SharedProjectFormType::class;
 
         $form = $this->createForm($formClass, $sharedProject, [
-        $form = $this->createForm(SharedProjectFormType::class, $sharedProject, [
             'method' => 'POST',
-            'action' => $this->generateUrl('update_shared_project_timesheets', ['projectId' => $projectId, 'shareKey' => $shareKey])
+            'action' => $this->generateUrl('update_shared_project_timesheets', ['id' => $sharedProject->getId(), 'shareKey' => $shareKey])
         ]);
         $form->handleRequest($request);
 
@@ -147,20 +146,11 @@ class ManageController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/{projectId}/{shareKey}/remove', name: 'remove_shared_project_timesheets', methods: ['GET', 'POST'])]
-    public function remove(Request $request): Response
+    #[Route(path: '/{id}/{shareKey}/remove', name: 'remove_shared_project_timesheets', methods: ['GET', 'POST'])]
+    public function remove(SharedProjectTimesheet $sharedProject, string $shareKey): Response
     {
-        $projectId = $request->get('projectId');
-        $shareKey = $request->get('shareKey');
-
-        if ($projectId == null || $shareKey == null) {
+        if ($shareKey == null || $sharedProject->getShareKey() !== $shareKey) {
             throw $this->createNotFoundException('Project not found');
-        }
-
-        /** @var SharedProjectTimesheet $sharedProject */
-        $sharedProject = $this->shareProjectTimesheetRepository->findOneBy(['project' => $projectId, 'shareKey' => $shareKey]);
-        if (!$sharedProject || $sharedProject->getProject() === null || $sharedProject->getShareKey() === null) {
-            throw $this->createNotFoundException('Given project not found');
         }
 
         try {

@@ -36,7 +36,8 @@ class SharedProjectSubscriber extends AbstractActionsSubscriber
             return;
         }
 
-        $event->addEdit($this->path('update_shared_project_timesheets', ['projectId' => $sharedProject->getProject()->getId(), 'shareKey' => $sharedProject->getShareKey()]));
+        $event->addEdit($this->path('update_shared_project_timesheets', ['id' => $sharedProject->getId(), 'shareKey' => $sharedProject->getShareKey()]));
+
         $event->addAction('project', ['url' => $this->path('project_details', ['id' => $sharedProject->getProject()->getId()])]);
         $event->addDelete($this->path('remove_shared_project_timesheets', ['projectId' => $sharedProject->getProject()->getId(), 'shareKey' => $sharedProject->getShareKey()]), false);
     }
