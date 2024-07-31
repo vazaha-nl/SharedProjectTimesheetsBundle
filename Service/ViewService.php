@@ -96,7 +96,7 @@ class ViewService
         } else {
             foreach ($this->sharedTimesheetRepository->getProjects($sharedProject) as $project) {
                 $query->addProject($project);
-            }            
+            }
         }
 
         $query->setOrderBy('begin');
