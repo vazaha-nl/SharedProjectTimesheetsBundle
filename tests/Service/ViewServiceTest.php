@@ -13,7 +13,9 @@ namespace KimaiPlugin\SharedProjectTimesheetsBundle\tests\Service;
 use App\Entity\Project;
 use App\Repository\TimesheetRepository;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Entity\SharedProjectTimesheet;
+use KimaiPlugin\SharedProjectTimesheetsBundle\Repository\SharedProjectTimesheetRepository;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Service\ViewService;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
@@ -28,12 +30,12 @@ class ViewServiceTest extends TestCase
     private $service;
 
     /**
-     * @var SessionInterface
+     * @var SessionInterface|MockObject
      */
     private $session;
 
     /**
-     * @var PasswordHasherInterface
+     * @var PasswordHasherInterface|MockObject
      */
     private $encoder;
 
@@ -45,6 +47,7 @@ class ViewServiceTest extends TestCase
     protected function setUp(): void
     {
         $timesheetRepository = $this->createMock(TimesheetRepository::class);
+        $sharedProjectTimesheetRepository = $this->createMock(SharedProjectTimesheetRepository::class);
         $request = new RequestStack();
         $this->session = $this->createPartialMock(SessionInterface::class, []);
 
@@ -52,7 +55,7 @@ class ViewServiceTest extends TestCase
         $this->encoder = $this->createMock(PasswordHasherInterface::class);
         $factory->method('getPasswordHasher')->willReturn($this->encoder);
 
-        $this->service = new ViewService($timesheetRepository, $this->session, $factory);
+        $this->service = new ViewService($timesheetRepository, $request, $factory, $sharedProjectTimesheetRepository);
     }
 
     private function createSharedProjectTimesheet(): SharedProjectTimesheet
