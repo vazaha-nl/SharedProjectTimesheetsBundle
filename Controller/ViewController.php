@@ -191,7 +191,7 @@ class ViewController extends AbstractController
         $year = (int) $request->get('year', date('Y'));
         $month = (int) $request->get('month', date('m'));
         $detailsMode = $request->get('details', 'table');
-        $timeRecords = $viewService->getTimeRecords($sharedProject, $year, $month);
+        $timeRecords = $viewService->getTimeRecords($sharedProject, $year, $month, $project);
 
         // Calculate summary.
         $rateSum = 0;
@@ -211,9 +211,9 @@ class ViewController extends AbstractController
         // Prepare stats for charts.
         $annualChartVisible = $sharedProject->isAnnualChartVisible();
         $monthlyChartVisible = $sharedProject->isMonthlyChartVisible();
-        $statsPerMonth = $annualChartVisible ? $viewService->getAnnualStats($sharedProject, $year) : null;
+        $statsPerMonth = $annualChartVisible ? $viewService->getAnnualStats($sharedProject, $year, $project) : null;
         $statsPerDay = ($monthlyChartVisible && $detailsMode === 'chart')
-            ? $viewService->getMonthlyStats($sharedProject, $year, $month) : null;
+            ? $viewService->getMonthlyStats($sharedProject, $year, $month, $project) : null;
 
         // we cannot call $this->getDateTimeFactory() as it throws a AccessDeniedException for anonymous users
         $timezone = $project->getCustomer()->getTimezone() ?? date_default_timezone_get();

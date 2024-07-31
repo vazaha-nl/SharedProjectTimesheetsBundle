@@ -10,6 +10,7 @@
 
 namespace KimaiPlugin\SharedProjectTimesheetsBundle\Service;
 
+use App\Entity\Project;
 use App\Repository\Query\BaseQuery;
 use App\Repository\Query\TimesheetQuery;
 use App\Repository\TimesheetRepository;
@@ -72,12 +73,13 @@ class ViewService
      * @param SharedProjectTimesheet $sharedProject
      * @param int $year
      * @param int $month
+     * @param Project|null $limitProject limit to this project
      * @return TimeRecord[]
      * @throws \Exception
      *
      * @todo Unit test
      */
-    public function getTimeRecords(SharedProjectTimesheet $sharedProject, int $year, int $month): array
+    public function getTimeRecords(SharedProjectTimesheet $sharedProject, int $year, int $month, ?Project $limitProject = null): array
     {
         $month = max(min($month, 12), 1);
 
@@ -89,8 +91,12 @@ class ViewService
         $query->setBegin($begin);
         $query->setEnd($end);
 
-        foreach ($this->sharedTimesheetRepository->getProjects($sharedProject) as $project) {
-            $query->addProject($project);
+        if (isset($limitProject)) {
+            $query->addProject($limitProject);
+        } else {
+            foreach ($this->sharedTimesheetRepository->getProjects($sharedProject) as $project) {
+                $query->addProject($project);
+            }            
         }
 
         $query->setOrderBy('begin');
@@ -143,11 +149,12 @@ class ViewService
      * Delivers stats for the given year (e.g. duration per month).
      * @param SharedProjectTimesheet $sharedProject
      * @param int $year
+     * @param Project|null $limitProject limit to this project
      * @return ChartStat[] stats per month, one-based index (1 - 12)
      *
      * @todo Unit test
      */
-    public function getAnnualStats(SharedProjectTimesheet $sharedProject, int $year): array
+    public function getAnnualStats(SharedProjectTimesheet $sharedProject, int $year, ?Project $limitProject = null): array
     {
         $queryBuilder = $this->timesheetRepository->createQueryBuilder('t')
             ->select([
@@ -160,7 +167,14 @@ class ViewService
             ->groupBy('year')
             ->addGroupBy('month');
 
-        if ($sharedProject->getType() === SharedProjectTimesheet::TYPE_PROJECT) {
+        if (isset($limitProject)) {
+            $queryBuilder = $queryBuilder
+                ->andWhere('t.project = :project')
+                ->setParameters([
+                    'project' => $limitProject,
+                    'year' => $year,
+                ]);
+        } elseif ($sharedProject->getType() === SharedProjectTimesheet::TYPE_PROJECT) {
             $queryBuilder = $queryBuilder
                 ->andWhere('t.project = :project')
                 ->setParameters([
@@ -202,11 +216,12 @@ class ViewService
      * @param SharedProjectTimesheet $sharedProject
      * @param int $year
      * @param int $month
+     * @param Project|null $limitProject limit to this project
      * @return ChartStat[] stats per day
      *
      * @todo Unit test
      */
-    public function getMonthlyStats(SharedProjectTimesheet $sharedProject, int $year, int $month): array
+    public function getMonthlyStats(SharedProjectTimesheet $sharedProject, int $year, int $month, ?Project $limitProject = null): array
     {
         $queryBuilder = $this->timesheetRepository->createQueryBuilder('t')
             ->select([
@@ -222,7 +237,15 @@ class ViewService
             ->addGroupBy('month')
             ->addGroupBy('day');
 
-        if ($sharedProject->getType() === SharedProjectTimesheet::TYPE_PROJECT) {
+        if (isset($limitProject)) {
+            $queryBuilder = $queryBuilder
+                ->andWhere('t.project = :project')
+                ->setParameters([
+                    'project' => $limitProject,
+                    'year' => $year,
+                    'month' => $month,
+                ]);
+        } elseif ($sharedProject->getType() === SharedProjectTimesheet::TYPE_PROJECT) {
             $queryBuilder = $queryBuilder
                 ->andWhere('t.project = :project')
                 ->setParameters([
