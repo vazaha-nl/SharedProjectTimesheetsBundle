@@ -48,6 +48,7 @@ class ManageController extends AbstractController
         $table->setReloadEvents('kimai.sharedProject');
 
         $table->addColumn('name', ['class' => 'alwaysVisible', 'orderBy' => false]);
+        $table->addColumn('type', ['class' => 'alwaysVisible', 'orderBy' => false]);
         $table->addColumn('url', ['class' => 'alwaysVisible', 'orderBy' => false]);
         $table->addColumn('password', ['class' => 'd-none', 'orderBy' => false]);
         $table->addColumn('record_merge_mode', ['class' => 'd-none text-center w-min', 'orderBy' => false, 'title' => 'shared_project_timesheets.manage.table.record_merge_mode']);
