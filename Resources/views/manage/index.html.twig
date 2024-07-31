@@ -2,7 +2,6 @@
 {% import "macros/widgets.html.twig" as widgets %}
 {% import "@SharedProjectTimesheets/manage/actions.html.twig" as actions %}
 
-{# TODO base update url on id, not projectId! #}
 {% block datatable_row_attr %} class="modal-ajax-form open-edit" data-href="{{ url('update_shared_project_timesheets', {id: entry.id, shareKey: entry.shareKey}) }}"{% endblock %}
 
 {% block datatable_column_value %}
