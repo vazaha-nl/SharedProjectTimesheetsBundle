@@ -1,0 +1,213 @@
+{% extends '@theme/fullpage.html.twig' %}
+{% from "macros/widgets.html.twig" import nothing_found %}
+
+{% block title %}{{ 'customer' | trans }}: {{ customer.getName() }}{% endblock %}
+
+{% block stylesheets %}
+    {% if tabler_bundle.isRightToLeft() %}
+        {{ encore_entry_link_tags('app-rtl') }}
+    {% else %}
+        {{ encore_entry_link_tags('app') }}
+    {% endif %}
+    {{ encore_entry_link_tags('chart') }}
+{% endblock %}
+
+{% block head %}
+    {{ encore_entry_script_tags('app') }}
+    {{ encore_entry_script_tags('chart') }}
+{% endblock %}
+
+{% block javascripts %}
+    {% import "macros/webloader.html.twig" as webloader %}
+    {{ webloader.init_frontend_loader() }}
+{% endblock %}
+
+{% block page_classes %}page{% endblock %}
+
+{% block page_content %}
+<div class="p-4">
+
+    <h2 class="page-title mb-3">
+
+        <div class="btn-group pe-2">
+            <a class="btn btn-default{% if month <= 1 %} disabled{% endif %}"
+               {% if month > 1 %}href="{{ app.request.pathinfo }}?year={{ year }}&month={{ month - 1 }}{% if detailsMode != 'table' %}&details={{ detailsMode }}{% endif %}"{% endif %}>
+                <i class="fa fa-caret-left"></i>
+            </a>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {% set tmpMonth = report_date(year, month) %}
+                    {{ tmpMonth|month_name }}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-start pre-scrollable">
+                    {% for i in 1..12 %}
+                        {% set tmpMonth = report_date(year, i) %}
+                        <li><a href="{{ app.request.pathinfo }}?year={{ year }}&month={{ i }}{% if detailsMode != 'table' %}&details={{ detailsMode }}{% endif %}" class="dropdown-item {{ i == month ? 'active' : '' }}">{{ tmpMonth|month_name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <a class="btn btn-default{% if month >= 12 %} disabled{% endif %}"
+               {% if month < 12 %}href="{{ app.request.pathinfo }}?year={{ year }}&month={{ month + 1 }}{% if detailsMode != 'table' %}&details={{ detailsMode }}{% endif %}"{% endif %}>
+                <i class="fa fa-caret-right"></i>
+            </a>
+        </div>
+
+        <div class="btn-group select-container">
+            <a class="btn btn-default" href="{{ app.request.pathinfo }}?year={{ year - 1 }}&month={{ month }}{% if detailsMode != 'table' %}&details={{ detailsMode }}{% endif %}">
+                <i class="fa fa-caret-left"></i>
+            </a>
+            <div class="btn-group select-container">
+                <button type="button" class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {{ year }}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-start pre-scrollable">
+                    {% for i in (year - 5)..(year + 5) %}
+                        <li><a href="{{ app.request.pathinfo }}?year={{ i }}&month={{ month }}{% if detailsMode != 'table' %}&details={{ detailsMode }}{% endif %}" class="dropdown-item {{ i == year ? 'active' : '' }}"> {{ i }} </a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <a class="btn btn-default" href="{{ app.request.pathinfo }}?year={{ year + 1 }}&month={{ month }}{% if detailsMode != 'table' %}&details={{ detailsMode }}{% endif %}">
+                <i class="fa fa-caret-right"></i>
+            </a>
+        </div>
+
+        <span class="ps-2">{{ 'customer' | trans }}: {{ sharedProject.customer.name }}</span>
+    </h2>
+
+    {% if statsPerMonth is not null %}
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{{ 'shared_project_timesheets.view.chart.per_month_title' | trans({'%year%': year}) }}</h3>
+                </div>
+                <div class="card-body">
+                    {% include '@SharedProjectTimesheets/view/chart/annual-chart.html.twig' with {year: year, month: month, statsPerMonth: statsPerMonth} %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card mb-3">
+        <div class="card-header">
+            <h3 class="card-title">{{ 'shared_project_timesheets.view.table.title' | trans }}</h3>
+            {% if monthlyChartVisible %}
+                <div class="card-actions">
+                    <div class="btn-group">
+                        <a href="{{ url('view_shared_project_timesheets_customer', {'customer': sharedProject.customer.id, 'shareKey': sharedProject.shareKey}) }}?year={{ year }}&month={{ month }}" class="btn btn-default btn-icon">
+                            <i class="fas fa-table"></i>
+                        </a>
+                        <a href="{{ url('view_shared_project_timesheets_customer', {'customer': sharedProject.customer.id, 'shareKey': sharedProject.shareKey}) }}?year={{ year }}&month={{ month }}&details=chart" class="btn btn-default btn-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <div class="card-body{% if timeRecords is not empty and statsPerDay is null %} p-0{% endif %}">
+            {% if timeRecords is empty %}
+                {{ nothing_found() }}
+            {% elseif statsPerDay is null %}
+                <table class="table table-vcenter table-hover dataTable">
+                    <thead>
+                        <tr>
+                            <th class="w-min">{{ 'shared_project_timesheets.view.table.date' | trans }}</th>
+                            {% if sharedProject.entryUserVisible %}
+                            <th>{{ 'shared_project_timesheets.view.table.user' | trans }}</th>
+                            {% endif %}
+                            <th>{{ 'project' | trans }}</th>
+                            <th>{{ 'shared_project_timesheets.view.table.description' | trans }}</th>
+                            <th class="w-min">{{ 'duration'|trans }}</th>
+                            {% if sharedProject.entryRateVisible %}
+                            <th class="w-min">{{ 'hourlyRate' | trans }}</th>
+                            <th class="w-min">{{ 'total_rate' | trans }}</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    {% for record in timeRecords %}
+                        <tr>
+                            <td>{{ record.date | date_short }}</td>
+                            {% if sharedProject.entryUserVisible %}
+                                <td>{{ record.user.displayName }}</td>
+                            {% endif %}
+                            <td>{{ record.getProject.name }}</td>
+                            <td>{{ record.description | e | nl2br }}</td>
+                            <td>{{ record.duration | duration }}</td>
+                            {% if sharedProject.entryRateVisible %}
+                                {% if record.differentHourlyRates %}
+                                    <td>
+                                        {% for info in record.hourlyRates %}
+                                            <div>{{ info.duration | duration }} - {{ info.hourlyRate | format_currency(currency) }}</div>
+                                        {% endfor %}
+                                    </td>
+                                {% else %}
+                                    <td>
+                                        {% if record.hourlyRates is not empty %}
+                                            {{ record.hourlyRates[0].hourlyRate | format_currency(currency) }}
+                                        {% endif %}
+                                    </td>
+                                {% endif %}
+                                <td>{{ record.rate | format_currency(currency) }}</td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                    {% if timeRecords is not empty %}
+                    <tfoot>
+                        <tr class="summary">
+                            <td></td>
+                            {% if sharedProject.entryUserVisible %}
+                            <td></td>
+                            {% endif %}
+                            <td></td>
+                            <td></td>
+                            <td>{{ durationSum | duration }}</td>
+                            {% if sharedProject.entryRateVisible %}
+                            <td></td>
+                            <td>{{ rateSum | format_currency(currency) }}</td>
+                            {% endif %}
+                        </tr>
+                    </tfoot>
+                    {% endif %}
+                </table>
+            {% else %}
+                {% include '@SharedProjectTimesheets/view/chart/monthly-chart.html.twig' with {year: year, month: month, statsPerDay: statsPerDay} %}
+            {% endif %}
+        </div>
+    </div>
+
+
+
+    <div class="card mb-3">
+        <div class="card-header">
+            <h3 class="card-title">{{ 'projects'|trans }}</h3>
+        </div>
+        <div class="card-body p-0 todocorrectclass">
+            {% if projects is empty %}
+                {{ nothing_found() }}
+            {% else %}
+                <table class="table table-hovertable-vcenter table-hover dataTable">
+                    <thead>
+                        <tr>
+                            <th class="w-min">NAME</th>
+                            <th class="w-min">COMMENT</th>
+                        </tr>
+                    </thead>
+                    {% for project in projects %}
+                        <tr class="alternative-link" data-href="{{
+                            url('view_shared_project_timesheets_project', {
+                                'customer': customer.getId(),
+                                'shareKey': shareKey,
+                                'project': project.getId(),
+
+                                }) }}">
+                            <td>{{ project.name }}</td>
+                            <td>{{ project.comment }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock %}
