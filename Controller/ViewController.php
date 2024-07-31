@@ -203,7 +203,8 @@ class ViewController extends AbstractController
 
         // Define currency.
         $currency = 'EUR';
-        $customer = $sharedProject->getProject()?->getCustomer();
+        $customer = $project->getCustomer();
+
         if ($customer !== null) {
             $currency = $customer->getCurrency();
         }
