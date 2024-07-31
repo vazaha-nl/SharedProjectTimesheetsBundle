@@ -34,7 +34,10 @@ class TimeRecord
 
         $record = new TimeRecord($timesheet->getBegin(), $timesheet->getUser(), $mergeMode);
         $record->addTimesheet($timesheet);
-        $record->setProject($timesheet->getProject());
+
+        if ($timesheet->getProject() !== null) {
+            $record->setProject($timesheet->getProject());
+        }
 
         return $record;
     }
