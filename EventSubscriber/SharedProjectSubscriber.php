@@ -32,13 +32,18 @@ class SharedProjectSubscriber extends AbstractActionsSubscriber
         /** @var SharedProjectTimesheet $sharedProject */
         $sharedProject = $payload['shared_project'];
 
-        if ($sharedProject->getId() === null || $sharedProject->getProject() === null) {
+        if ($sharedProject->getId() === null || $sharedProject->getType() === null) {
             return;
         }
 
         $event->addEdit($this->path('update_shared_project_timesheets', ['id' => $sharedProject->getId(), 'shareKey' => $sharedProject->getShareKey()]));
 
-        $event->addAction('project', ['url' => $this->path('project_details', ['id' => $sharedProject->getProject()->getId()])]);
-        $event->addDelete($this->path('remove_shared_project_timesheets', ['projectId' => $sharedProject->getProject()->getId(), 'shareKey' => $sharedProject->getShareKey()]), false);
+        if ($sharedProject->getType() === SharedProjectTimesheet::TYPE_CUSTOMER) {
+            $event->addAction('customer', ['url' => $this->path('customer_details', ['id' => $sharedProject->getCustomer()->getId()])]);
+        } else {
+            $event->addAction('project', ['url' => $this->path('project_details', ['id' => $sharedProject->getProject()->getId()])]);
+        }
+
+        $event->addDelete($this->path('remove_shared_project_timesheets', ['id' => $sharedProject->getId(), 'shareKey' => $sharedProject->getShareKey()]), false);
     }
 }
