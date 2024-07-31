@@ -176,7 +176,38 @@
         </div>
     </div>
 
-
+    {% if ((stats.hasBudget() and sharedProject.isBudgetStatsVisible()) or (stats.hasTimeBudget() and sharedProject.isTimeBudgetStatsVisible())) %}
+        {% import "macros/progressbar.html.twig" as progress %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title">{{ 'shared_project_timesheets.view.stats.title' | trans }}</h3>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover dataTable">
+                    {% if stats.hasBudget() and sharedProject.isBudgetStatsVisible() %}
+                        <tr>
+                            <td>
+                                {{ 'budget' | trans }}
+                            </td>
+                            <td>
+                                {{ progress.progressbar_budget(stats, currency) }}
+                            </td>
+                        </tr>
+                    {% endif %}
+                    {% if stats.hasTimeBudget() and sharedProject.isTimeBudgetStatsVisible() %}
+                        <tr>
+                            <td>
+                                {{ 'timeBudget' | trans }}
+                            </td>
+                            <td>
+                                {{ progress.progressbar_timebudget(stats) }}
+                            </td>
+                        </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+    {% endif %}
 
     <div class="card mb-3">
         <div class="card-header">
@@ -209,5 +240,4 @@
             {% endif %}
         </div>
     </div>
-
 {% endblock %}
