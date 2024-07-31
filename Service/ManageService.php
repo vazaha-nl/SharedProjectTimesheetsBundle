@@ -45,14 +45,14 @@ class ManageService
                     substr(preg_replace('/[^A-Za-z0-9]+/', '', $this->getUuidV4()), 0, 12)
                 );
 
-                if ($sharedProjectTimesheet->getType() === SharedProjectTimesheet::TYPE_PROJECT) {
-                    $existingEntry = $this->sharedProjectTimesheetRepository->findByProjectAndShareKey(
-                        $sharedProjectTimesheet->getProject(),
-                        $sharedProjectTimesheet->getShareKey()
-                    );
-                } elseif ($sharedProjectTimesheet->getType() === SharedProjectTimesheet::TYPE_CUSTOMER) {
+                if ($sharedProjectTimesheet->getType() === SharedProjectTimesheet::TYPE_CUSTOMER) {
                     $existingEntry = $this->sharedProjectTimesheetRepository->findByCustomerAndShareKey(
                         $sharedProjectTimesheet->getCustomer(),
+                        $sharedProjectTimesheet->getShareKey()
+                    );
+                } else {
+                    $existingEntry = $this->sharedProjectTimesheetRepository->findByProjectAndShareKey(
+                        $sharedProjectTimesheet->getProject(),
                         $sharedProjectTimesheet->getShareKey()
                     );
                 }
