@@ -10,7 +10,6 @@
 
 namespace KimaiPlugin\SharedProjectTimesheetsBundle\Service;
 
-use App\Entity\Project;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Entity\SharedProjectTimesheet;
@@ -46,10 +45,18 @@ class ManageService
                     substr(preg_replace('/[^A-Za-z0-9]+/', '', $this->getUuidV4()), 0, 12)
                 );
 
-                $existingEntry = $this->sharedProjectTimesheetRepository->findByProjectAndShareKey(
-                    $sharedProjectTimesheet->getProject(),
-                    $sharedProjectTimesheet->getShareKey()
-                );
+                if ($sharedProjectTimesheet->getType() === SharedProjectTimesheet::TYPE_PROJECT) {
+                    $existingEntry = $this->sharedProjectTimesheetRepository->findByProjectAndShareKey(
+                        $sharedProjectTimesheet->getProject(),
+                        $sharedProjectTimesheet->getShareKey()
+                    );
+                } elseif ($sharedProjectTimesheet->getType() === SharedProjectTimesheet::TYPE_CUSTOMER) {
+                    $existingEntry = $this->sharedProjectTimesheetRepository->findByCustomerAndShareKey(
+                        $sharedProjectTimesheet->getCustomer(),
+                        $sharedProjectTimesheet->getShareKey()
+                    );
+                }
+
             } while ($existingEntry !== null);
         }
 
@@ -69,9 +76,8 @@ class ManageService
             throw new \InvalidArgumentException('Cannot update shared project timesheet with share key equals null');
         }
 
-        // Ensure project
-        if (!($sharedProjectTimesheet->getProject() instanceof Project)) {
-            throw new \InvalidArgumentException("Project of shared project timesheet is not an instance of App\Entity\Project");
+        if ($sharedProjectTimesheet->getType() === null) {
+            throw new \InvalidArgumentException('No valid project or customer specified');
         }
 
         // Handle password

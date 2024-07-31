@@ -10,10 +10,12 @@
 
 namespace KimaiPlugin\SharedProjectTimesheetsBundle\Repository;
 
+use App\Entity\Customer;
 use App\Entity\Project;
 use App\Repository\Loader\DefaultLoader;
 use App\Repository\Paginator\LoaderPaginator;
 use App\Repository\Query\BaseQuery;
+use App\Repository\Query\ProjectQuery;
 use App\Utils\Pagination;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -28,8 +30,9 @@ class SharedProjectTimesheetRepository extends EntityRepository
     public function findAllSharedProjects(BaseQuery $query): Pagination
     {
         $qb = $this->createQueryBuilder('spt')
-            ->join(Project::class, 'p', Join::WITH, 'spt.project = p')
-            ->orderBy('p.name, spt.shareKey', 'ASC');
+            ->leftJoin(Project::class, 'p', Join::WITH, 'spt.project = p')
+            ->leftJoin(Customer::class, 'c', Join::WITH, 'spt.customer = c')
+            ->orderBy('p.name, c.name, spt.shareKey', 'ASC');
 
         $loader = new LoaderPaginator(new DefaultLoader(), $qb, $this->count([]));
 
@@ -55,6 +58,7 @@ class SharedProjectTimesheetRepository extends EntityRepository
         try {
             return $this->createQueryBuilder('spt')
                 ->where('spt.project = :project')
+                ->andWhere('spt.customer is null')
                 ->andWhere('spt.shareKey = :shareKey')
                 ->setMaxResults(1)
                 ->setParameter('project', $project)
@@ -62,8 +66,42 @@ class SharedProjectTimesheetRepository extends EntityRepository
                 ->getQuery()
                 ->getOneOrNullResult();
         } catch (NonUniqueResultException $e) {
-            // We can ignore that as we have a unique database key for project and shareKey
+            // We can ignore that as we have a unique database key for project/customer/shareKey
             return null;
         }
+    }
+
+    public function findByCustomerAndShareKey(Customer|int $customer, ?string $shareKey): ?SharedProjectTimesheet
+    {
+        try {
+            return $this->createQueryBuilder('spt')
+                ->where('spt.project is null')
+                ->andWhere('spt.customer = :customer')
+                ->andWhere('spt.shareKey = :shareKey')
+                ->setMaxResults(1)
+                ->setParameter('customer', $customer)
+                ->setParameter('shareKey', $shareKey)
+                ->getQuery()
+                ->getOneOrNullResult();
+        } catch (NonUniqueResultException $e) {
+            // We can ignore that as we have a unique database key for project/customer/shareKey
+            return null;
+        }
+    }
+
+    /**
+     * @param SharedProjectTimesheet $sharedProject
+     * @return Project[]
+     */
+    public function getProjects(SharedProjectTimesheet $sharedProject): array
+    {
+        if ($sharedProject->getType() === SharedProjectTimesheet::TYPE_PROJECT) {
+            return [$sharedProject->getProject()];
+        }
+
+        /** @var \App\Repository\ProjectRepository $projectRepository */
+        $projectRepository = $this->_em->getRepository(Project::class);
+
+        return (array)$projectRepository->getProjectsForQuery((new ProjectQuery())->setCustomers([$sharedProject->getCustomer()]));
     }
 }
