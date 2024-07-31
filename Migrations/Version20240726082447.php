@@ -45,6 +45,5 @@ final class Version20240726082447 extends AbstractMigration
         $table->addUniqueIndex(['project_id', 'share_key']);
         $table->removeForeignKey('fk_customer');
         $table->dropColumn('customer_id');
-        $table->modifyColumn('project_id', ['notnull' => true]);
     }
 }
