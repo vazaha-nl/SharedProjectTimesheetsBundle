@@ -14,7 +14,9 @@ use App\Controller\AbstractController;
 use App\Repository\Query\BaseQuery;
 use App\Utils\DataTable;
 use App\Utils\PageSetup;
+use InvalidArgumentException;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Entity\SharedProjectTimesheet;
+use KimaiPlugin\SharedProjectTimesheetsBundle\Form\SharedCustomerFormType;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Form\SharedProjectFormType;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Model\RecordMergeMode;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Repository\SharedProjectTimesheetRepository;
@@ -70,11 +72,21 @@ class ManageController extends AbstractController
     #[Route(path: '/create', name: 'create_shared_project_timesheets', methods: ['GET', 'POST'])]
     public function create(Request $request): Response
     {
+        $type = $request->query->get('type');
+
+        if (!in_array($type, [SharedProjectTimesheet::TYPE_CUSTOMER, SharedProjectTimesheet::TYPE_PROJECT])) {
+            throw new InvalidArgumentException('Invalid value for type');
+        }
+
         $sharedProject = new SharedProjectTimesheet();
 
-        $form = $this->createForm(SharedProjectFormType::class, $sharedProject, [
+        $formClass = $type === SharedProjectTimesheet::TYPE_CUSTOMER ?
+            SharedCustomerFormType::class :
+            SharedProjectFormType::class;
+
+        $form = $this->createForm($formClass, $sharedProject, [
             'method' => 'POST',
-            'action' => $this->generateUrl('create_shared_project_timesheets')
+            'action' => $this->generateUrl('create_shared_project_timesheets', ['type' => $type]),
         ]);
         $form->handleRequest($request);
 
@@ -102,13 +114,11 @@ class ManageController extends AbstractController
             throw $this->createNotFoundException('Project not found');
         }
 
-        /** @var SharedProjectTimesheet $sharedProject */
-        $sharedProject = $this->shareProjectTimesheetRepository->findOneBy(['project' => $projectId, 'shareKey' => $shareKey]);
-        if ($sharedProject === null) {
-            throw $this->createNotFoundException('Given project not found');
-        }
+        $formClass = $sharedProject->getType() === SharedProjectTimesheet::TYPE_CUSTOMER ?
+            SharedCustomerFormType::class :
+            SharedProjectFormType::class;
 
-        // Store data in temporary SharedProjectTimesheet object
+        $form = $this->createForm($formClass, $sharedProject, [
         $form = $this->createForm(SharedProjectFormType::class, $sharedProject, [
             'method' => 'POST',
             'action' => $this->generateUrl('update_shared_project_timesheets', ['projectId' => $projectId, 'shareKey' => $shareKey])
