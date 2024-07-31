@@ -2,14 +2,21 @@
 {% import "macros/widgets.html.twig" as widgets %}
 {% import "@SharedProjectTimesheets/manage/actions.html.twig" as actions %}
 
-{% block datatable_row_attr %} class="modal-ajax-form open-edit" data-href="{{ url('update_shared_project_timesheets', {projectId: entry.project.id, shareKey: entry.shareKey}) }}"{% endblock %}
+{# TODO base update url on id, not projectId! #}
+{% block datatable_row_attr %} class="modal-ajax-form open-edit" data-href="{{ url('update_shared_project_timesheets', {id: entry.id, shareKey: entry.shareKey}) }}"{% endblock %}
 
 {% block datatable_column_value %}
     {% if column == 'name' %}
-        {{ entry.project.name }}
+        {{ entry.project.name ?? entry.customer.name }}
+    {% elseif column == 'type' %}
+        {{ entry.getType() | trans }}
     {% elseif column == 'url' %}
         {% if entry.shareKey %}
-            {% set p_url = url('view_shared_project_timesheets', {id: entry.project.id, shareKey: entry.shareKey}) %}
+            {% if entry.project %}
+                {% set p_url = url('view_shared_project_timesheets', {id: entry.project.id, shareKey: entry.shareKey}) %}
+            {% elseif entry.customer %}
+                {% set p_url = url('view_shared_project_timesheets_customer', {customer: entry.customer.id, shareKey: entry.shareKey}) %}
+            {% endif %}
             <a href="{{ p_url }}" target="_blank">
                 {{ p_url }}
             </a>
