@@ -53,7 +53,7 @@ class ViewService
             $shareKey = $sharedProject->getShareKey();
             $passwordMd5 = md5($hashedPassword);
 
-            $sessionPasswordKey = sprintf('spt-authed-%d-%s-%s', $sharedProject->getId(), $shareKey, $passwordMd5);
+            $sessionPasswordKey = \sprintf('spt-authed-%d-%s-%s', $sharedProject->getId(), $shareKey, $passwordMd5);
 
             if (!$this->request->getSession()->has($sessionPasswordKey)) {
                 // Check given password

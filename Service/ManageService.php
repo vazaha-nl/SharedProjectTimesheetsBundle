@@ -106,7 +106,7 @@ class ManageService
      */
     private function getUuidV4(): string
     {
-        return sprintf(
+        return \sprintf(
             '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
 
             // 32 bits for "time_low"

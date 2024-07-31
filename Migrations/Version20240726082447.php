@@ -25,11 +25,11 @@ final class Version20240726082447 extends AbstractMigration
         $tableName = Version2020120600000::SHARED_PROJECT_TIMESHEETS_TABLE_NAME;
 
         // raw sql needed because column position is not supported
-        $this->addSql(sprintf('ALTER TABLE %s ADD customer_id INT(11) DEFAULT NULL AFTER id', $tableName));
-        $this->addSql(sprintf('ALTER TABLE %s MODIFY project_id INT(11) DEFAULT NULL', $tableName));
-        $this->addSql(sprintf('ALTER TABLE %s DROP INDEX UNIQ_BE51C9A166D1F9CF06F2E59', $tableName));
-        $this->addSql(sprintf('ALTER TABLE %s ADD CONSTRAINT UNIQ_customer_id_project_id_share_key UNIQUE (customer_id, project_id, share_key)', $tableName));
-        $this->addSql(sprintf('
+        $this->addSql(\sprintf('ALTER TABLE %s ADD customer_id INT(11) DEFAULT NULL AFTER id', $tableName));
+        $this->addSql(\sprintf('ALTER TABLE %s MODIFY project_id INT(11) DEFAULT NULL', $tableName));
+        $this->addSql(\sprintf('ALTER TABLE %s DROP INDEX UNIQ_BE51C9A166D1F9CF06F2E59', $tableName));
+        $this->addSql(\sprintf('ALTER TABLE %s ADD CONSTRAINT UNIQ_customer_id_project_id_share_key UNIQUE (customer_id, project_id, share_key)', $tableName));
+        $this->addSql(\sprintf('
             ALTER TABLE %s ADD CONSTRAINT fk_customer
             FOREIGN KEY (customer_id)
             REFERENCES kimai2_customers (id)
