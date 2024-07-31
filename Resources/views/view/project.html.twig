@@ -1,7 +1,7 @@
 {% extends '@theme/fullpage.html.twig' %}
 {% from "macros/widgets.html.twig" import nothing_found %}
 
-{% block title %}{{ 'shared_project_timesheets.view.title' | trans }} {{ sharedProject.project.name }}{% endblock %}
+{% block title %}{{ 'shared_project_timesheets.view.title' | trans }} {{ project.name }}{% endblock %}
 
 {% block stylesheets %}
     {% if tabler_bundle.isRightToLeft() %}
@@ -71,7 +71,7 @@
             </a>
         </div>
 
-        <span class="ps-2">{{ sharedProject.project.name }}</span>
+        <span class="ps-2">{{ project.name }}</span>
     </h2>
 
     {% if statsPerMonth is not null %}
@@ -95,10 +95,10 @@
             {% if monthlyChartVisible %}
                 <div class="card-actions">
                     <div class="btn-group">
-                        <a href="{{ url('view_shared_project_timesheets', {'id': sharedProject.project.id, 'shareKey': sharedProject.shareKey}) }}?year={{ year }}&month={{ month }}" class="btn btn-default btn-icon">
+                        <a href="{{ url('view_shared_project_timesheets', {'id': project.id, 'shareKey': sharedProject.shareKey}) }}?year={{ year }}&month={{ month }}" class="btn btn-default btn-icon">
                             <i class="fas fa-table"></i>
                         </a>
-                        <a href="{{ url('view_shared_project_timesheets', {'id': sharedProject.project.id, 'shareKey': sharedProject.shareKey}) }}?year={{ year }}&month={{ month }}&details=chart" class="btn btn-default btn-icon">
+                        <a href="{{ url('view_shared_project_timesheets', {'id': project.id, 'shareKey': sharedProject.shareKey}) }}?year={{ year }}&month={{ month }}&details=chart" class="btn btn-default btn-icon">
                             <i class="fas fa-chart-bar"></i>
                         </a>
                     </div>
