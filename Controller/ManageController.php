@@ -75,7 +75,7 @@ class ManageController extends AbstractController
     {
         $type = $request->query->get('type');
 
-        if (!in_array($type, [SharedProjectTimesheet::TYPE_CUSTOMER, SharedProjectTimesheet::TYPE_PROJECT])) {
+        if (!\in_array($type, [SharedProjectTimesheet::TYPE_CUSTOMER, SharedProjectTimesheet::TYPE_PROJECT])) {
             throw new InvalidArgumentException('Invalid value for type');
         }
 

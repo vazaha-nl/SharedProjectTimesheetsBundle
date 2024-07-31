@@ -56,7 +56,6 @@ class ManageService
                         $sharedProjectTimesheet->getShareKey()
                     );
                 }
-
             } while ($existingEntry !== null);
         }
 

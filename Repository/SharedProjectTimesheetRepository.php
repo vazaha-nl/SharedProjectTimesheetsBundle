@@ -102,6 +102,6 @@ class SharedProjectTimesheetRepository extends EntityRepository
         /** @var \App\Repository\ProjectRepository $projectRepository */
         $projectRepository = $this->_em->getRepository(Project::class);
 
-        return (array)$projectRepository->getProjectsForQuery((new ProjectQuery())->setCustomers([$sharedProject->getCustomer()]));
+        return (array) $projectRepository->getProjectsForQuery((new ProjectQuery())->setCustomers([$sharedProject->getCustomer()]));
     }
 }
