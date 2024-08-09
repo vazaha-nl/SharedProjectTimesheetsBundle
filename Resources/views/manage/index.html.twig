@@ -12,7 +12,7 @@
     {% elseif column == 'url' %}
         {% if entry.shareKey %}
             {% if entry.project %}
-                {% set p_url = url('view_shared_project_timesheets', {sharedProject: entry.project.id, shareKey: entry.shareKey}) %}
+                {% set p_url = url('view_shared_project_timesheets', {project: entry.project.id, shareKey: entry.shareKey}) %}
             {% elseif entry.customer %}
                 {% set p_url = url('view_shared_project_timesheets_customer', {customer: entry.customer.id, shareKey: entry.shareKey}) %}
             {% endif %}
