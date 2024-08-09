@@ -11,6 +11,7 @@
 namespace KimaiPlugin\SharedProjectTimesheetsBundle\Migrations;
 
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\Migrations\AbstractMigration;
 
 final class Version20240726082447 extends AbstractMigration
@@ -22,28 +23,32 @@ final class Version20240726082447 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $tableName = Version2020120600000::SHARED_PROJECT_TIMESHEETS_TABLE_NAME;
-
-        // raw sql needed because column position is not supported
-        $this->addSql(\sprintf('ALTER TABLE %s ADD customer_id INT(11) DEFAULT NULL AFTER id', $tableName));
-        $this->addSql(\sprintf('ALTER TABLE %s MODIFY project_id INT(11) DEFAULT NULL', $tableName));
-        $this->addSql(\sprintf('ALTER TABLE %s DROP INDEX UNIQ_BE51C9A166D1F9CF06F2E59', $tableName));
-        $this->addSql(\sprintf('ALTER TABLE %s ADD CONSTRAINT UNIQ_customer_id_project_id_share_key UNIQUE (customer_id, project_id, share_key)', $tableName));
-        $this->addSql(\sprintf('
-            ALTER TABLE %s ADD CONSTRAINT fk_customer
-            FOREIGN KEY (customer_id)
-            REFERENCES kimai2_customers (id)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE
-        ', $tableName));
+        $table = $schema->getTable(Version2020120600000::SHARED_PROJECT_TIMESHEETS_TABLE_NAME);
+        $table->addColumn('customer_id', Types::INTEGER, [
+            'notnull' => false,
+        ]);
+        $table->modifyColumn('project_id', [
+            'notnull' => false,
+        ]);
+        $table->dropIndex('UNIQ_BE51C9A166D1F9CF06F2E59');
+        $table->addUniqueIndex(['customer_id', 'project_id', 'share_key']);
+        $table->addForeignKeyConstraint(
+            'kimai2_customers',
+            ['customer_id'],
+            ['id'],
+            [
+                'onUpdate' => 'CASCADE',
+                'onDelete' => 'CASCADE',
+            ]
+        );
     }
 
     public function down(Schema $schema): void
     {
         $table = $schema->getTable(Version2020120600000::SHARED_PROJECT_TIMESHEETS_TABLE_NAME);
-        $table->dropIndex('UNIQ_customer_id_project_id_share_key');
+        $table->dropIndex('UNIQ_BE51C9A9395C3F3166D1F9CF06F2E59');
         $table->addUniqueIndex(['project_id', 'share_key']);
-        $table->removeForeignKey('fk_customer');
+        $table->removeForeignKey('FK_BE51C9A9395C3F3');
         $table->dropColumn('customer_id');
     }
 }
