@@ -52,7 +52,7 @@ class TimeRecord
     private int $duration = 0;
     private ?User $user = null;
     private ?string $mergeMode = null;
-    private Project $project;
+    private ?Project $project = null;
 
     private function __construct(\DateTimeInterface $date, User $user, string $mergeMode)
     {
@@ -111,7 +111,7 @@ class TimeRecord
 
     public function getProject(): ?Project
     {
-        return $this->project ?? null;
+        return $this->project;
     }
 
     protected function addHourlyRate(?float $hourlyRate, ?int $duration): void
