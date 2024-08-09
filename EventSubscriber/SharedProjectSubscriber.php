@@ -38,7 +38,7 @@ class SharedProjectSubscriber extends AbstractActionsSubscriber
 
         $event->addEdit($this->path('update_shared_project_timesheets', ['id' => $sharedProject->getId(), 'shareKey' => $sharedProject->getShareKey()]));
 
-        if ($sharedProject->getType() === SharedProjectTimesheet::TYPE_CUSTOMER) {
+        if ($sharedProject->isCustomerSharing()) {
             $event->addAction('customer', ['url' => $this->path('customer_details', ['id' => $sharedProject->getCustomer()->getId()])]);
         } else {
             $event->addAction('project', ['url' => $this->path('project_details', ['id' => $sharedProject->getProject()->getId()])]);

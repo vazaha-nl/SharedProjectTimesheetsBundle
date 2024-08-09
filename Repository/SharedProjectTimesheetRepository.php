@@ -95,7 +95,7 @@ class SharedProjectTimesheetRepository extends EntityRepository
      */
     public function getProjects(SharedProjectTimesheet $sharedProject): array
     {
-        if ($sharedProject->getType() === SharedProjectTimesheet::TYPE_PROJECT) {
+        if ($sharedProject->isProjectSharing()) {
             return [$sharedProject->getProject()];
         }
 

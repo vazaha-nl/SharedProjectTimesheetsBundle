@@ -174,7 +174,7 @@ class ViewService
                     'project' => $limitProject,
                     'year' => $year,
                 ]);
-        } elseif ($sharedProject->getType() === SharedProjectTimesheet::TYPE_PROJECT) {
+        } elseif ($sharedProject->isProjectSharing()) {
             $queryBuilder = $queryBuilder
                 ->andWhere('t.project = :project')
                 ->setParameters([
@@ -245,7 +245,7 @@ class ViewService
                     'year' => $year,
                     'month' => $month,
                 ]);
-        } elseif ($sharedProject->getType() === SharedProjectTimesheet::TYPE_PROJECT) {
+        } elseif ($sharedProject->isProjectSharing()) {
             $queryBuilder = $queryBuilder
                 ->andWhere('t.project = :project')
                 ->setParameters([

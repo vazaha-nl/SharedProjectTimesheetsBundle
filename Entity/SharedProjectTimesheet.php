@@ -211,4 +211,14 @@ class SharedProjectTimesheet
 
         return null;
     }
+
+    public function isCustomerSharing(): bool
+    {
+        return $this->getType() === static::TYPE_CUSTOMER;
+    }
+
+    public function isProjectSharing(): bool
+    {
+        return $this->getType() === static::TYPE_PROJECT;
+    }
 }
