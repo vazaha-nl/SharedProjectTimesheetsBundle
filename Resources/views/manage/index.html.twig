@@ -2,7 +2,7 @@
 {% import "macros/widgets.html.twig" as widgets %}
 {% import "@SharedProjectTimesheets/manage/actions.html.twig" as actions %}
 
-{% block datatable_row_attr %} class="modal-ajax-form open-edit" data-href="{{ url('update_shared_project_timesheets', {id: entry.id, shareKey: entry.shareKey}) }}"{% endblock %}
+{% block datatable_row_attr %} class="modal-ajax-form open-edit" data-href="{{ url('update_shared_project_timesheets', {sharedProject: entry.id, shareKey: entry.shareKey}) }}"{% endblock %}
 
 {% block datatable_column_value %}
     {% if column == 'name' %}
@@ -12,7 +12,7 @@
     {% elseif column == 'url' %}
         {% if entry.shareKey %}
             {% if entry.project %}
-                {% set p_url = url('view_shared_project_timesheets', {id: entry.project.id, shareKey: entry.shareKey}) %}
+                {% set p_url = url('view_shared_project_timesheets', {sharedProject: entry.project.id, shareKey: entry.shareKey}) %}
             {% elseif entry.customer %}
                 {% set p_url = url('view_shared_project_timesheets_customer', {customer: entry.customer.id, shareKey: entry.shareKey}) %}
             {% endif %}
@@ -39,7 +39,7 @@
     {% elseif column == 'monthly_chart_visible' %}
         {{ widgets.label_boolean(entry.monthlyChartVisible) }}
     {% elseif column == 'actions' %}
-        {% set event = actions(app.user, 'shared_project', 'index', {'shared_project': entry}) %}
+        {% set event = actions(app.user, 'shared_project', 'index', {'sharedProject': entry}) %}
         {{ widgets.table_actions(event.actions) }}
     {% endif %}
 {% endblock %}

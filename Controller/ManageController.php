@@ -108,7 +108,7 @@ class ManageController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/{id}/{shareKey}', name: 'update_shared_project_timesheets', methods: ['GET', 'POST'])]
+    #[Route(path: '/{sharedProject}/{shareKey}', name: 'update_shared_project_timesheets', methods: ['GET', 'POST'])]
     public function update(SharedProjectTimesheet $sharedProject, string $shareKey, Request $request): Response
     {
         if ($shareKey == null || $sharedProject->getShareKey() !== $shareKey) {
@@ -121,7 +121,7 @@ class ManageController extends AbstractController
 
         $form = $this->createForm($formClass, $sharedProject, [
             'method' => 'POST',
-            'action' => $this->generateUrl('update_shared_project_timesheets', ['id' => $sharedProject->getId(), 'shareKey' => $shareKey])
+            'action' => $this->generateUrl('update_shared_project_timesheets', ['sharedProject' => $sharedProject->getId(), 'shareKey' => $shareKey])
         ]);
         $form->handleRequest($request);
 
@@ -146,7 +146,7 @@ class ManageController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/{id}/{shareKey}/remove', name: 'remove_shared_project_timesheets', methods: ['GET', 'POST'])]
+    #[Route(path: '/{sharedProject}/{shareKey}/remove', name: 'remove_shared_project_timesheets', methods: ['GET', 'POST'])]
     public function remove(SharedProjectTimesheet $sharedProject, string $shareKey): Response
     {
         if ($shareKey == null || $sharedProject->getShareKey() !== $shareKey) {

@@ -25,7 +25,7 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route(path: '/auth/shared-project-timesheets')]
 class ViewController extends AbstractController
 {
-    #[Route(path: '/{id}/{shareKey}', name: 'view_shared_project_timesheets', methods: ['GET', 'POST'])]
+    #[Route(path: '/{sharedProject}/{shareKey}', name: 'view_shared_project_timesheets', methods: ['GET', 'POST'])]
     public function indexAction(
         Project $project,
         string $shareKey,
