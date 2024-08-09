@@ -10,6 +10,7 @@
 
 namespace KimaiPlugin\SharedProjectTimesheetsBundle\Model;
 
+use App\Entity\Project;
 use App\Entity\Timesheet;
 use App\Entity\User;
 
@@ -34,6 +35,10 @@ class TimeRecord
         $record = new TimeRecord($timesheet->getBegin(), $timesheet->getUser(), $mergeMode);
         $record->addTimesheet($timesheet);
 
+        if ($timesheet->getProject() !== null) {
+            $record->setProject($timesheet->getProject());
+        }
+
         return $record;
     }
 
@@ -47,6 +52,7 @@ class TimeRecord
     private int $duration = 0;
     private ?User $user = null;
     private ?string $mergeMode = null;
+    private ?Project $project = null;
 
     private function __construct(\DateTimeInterface $date, User $user, string $mergeMode)
     {
@@ -101,6 +107,11 @@ class TimeRecord
         $this->addRate($timesheet->getRate());
         $this->addDuration($timesheet->getDuration());
         $this->setDescription($timesheet);
+    }
+
+    public function getProject(): ?Project
+    {
+        return $this->project;
     }
 
     protected function addHourlyRate(?float $hourlyRate, ?int $duration): void
@@ -160,5 +171,10 @@ class TimeRecord
                 );
             }
         }
+    }
+
+    protected function setProject(Project $project): void
+    {
+        $this->project = $project;
     }
 }

@@ -10,6 +10,7 @@
 
 namespace KimaiPlugin\SharedProjectTimesheetsBundle\Form;
 
+use App\Form\Type\CustomerType;
 use App\Form\Type\ProjectType;
 use App\Form\Type\YesNoType;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Entity\SharedProjectTimesheet;
@@ -30,10 +31,17 @@ class SharedProjectFormType extends AbstractType
     {
         $mergeRecordTypes = array_flip(RecordMergeMode::getModes());
 
-        $builder
-            ->add('project', ProjectType::class, [
+        if ($this->getType() === SharedProjectTimesheet::TYPE_PROJECT) {
+            $builder->add('project', ProjectType::class, [
                 'required' => true,
-            ])
+            ]);
+        } elseif ($this->getType() === SharedProjectTimesheet::TYPE_CUSTOMER) {
+            $builder->add('customer', CustomerType::class, [
+                'required' => true,
+            ]);
+        }
+
+        $builder
             ->add('recordMergeMode', ChoiceType::class, [
                 'label' => 'shared_project_timesheets.manage.form.record_merge_mode',
                 'required' => true,
@@ -111,5 +119,10 @@ class SharedProjectFormType extends AbstractType
         if (!empty($form->get('password')->getData())) {
             $view['password']->vars['value'] = ManageService::PASSWORD_DO_NOT_CHANGE_VALUE;
         }
+    }
+
+    protected function getType(): string
+    {
+        return SharedProjectTimesheet::TYPE_PROJECT;
     }
 }

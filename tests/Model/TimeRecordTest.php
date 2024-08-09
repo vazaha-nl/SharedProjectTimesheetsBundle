@@ -91,7 +91,7 @@ class TimeRecordTest extends TestCase
 
     public function testMergeModeNull(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(\TypeError::class);
 
         TimeRecord::fromTimesheet(
             self::createTimesheet(new DateTime(), new User(), 0, 0, null),

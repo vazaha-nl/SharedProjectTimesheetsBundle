@@ -10,7 +10,6 @@
 
 namespace KimaiPlugin\SharedProjectTimesheetsBundle\Service;
 
-use App\Entity\Project;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Entity\SharedProjectTimesheet;
@@ -46,10 +45,17 @@ class ManageService
                     substr(preg_replace('/[^A-Za-z0-9]+/', '', $this->getUuidV4()), 0, 12)
                 );
 
-                $existingEntry = $this->sharedProjectTimesheetRepository->findByProjectAndShareKey(
-                    $sharedProjectTimesheet->getProject(),
-                    $sharedProjectTimesheet->getShareKey()
-                );
+                if ($sharedProjectTimesheet->isCustomerSharing()) {
+                    $existingEntry = $this->sharedProjectTimesheetRepository->findByCustomerAndShareKey(
+                        $sharedProjectTimesheet->getCustomer(),
+                        $sharedProjectTimesheet->getShareKey()
+                    );
+                } else {
+                    $existingEntry = $this->sharedProjectTimesheetRepository->findByProjectAndShareKey(
+                        $sharedProjectTimesheet->getProject(),
+                        $sharedProjectTimesheet->getShareKey()
+                    );
+                }
             } while ($existingEntry !== null);
         }
 
@@ -67,11 +73,6 @@ class ManageService
         // Check if updatable
         if ($sharedProjectTimesheet->getShareKey() === null) {
             throw new \InvalidArgumentException('Cannot update shared project timesheet with share key equals null');
-        }
-
-        // Ensure project
-        if (!($sharedProjectTimesheet->getProject() instanceof Project)) {
-            throw new \InvalidArgumentException("Project of shared project timesheet is not an instance of App\Entity\Project");
         }
 
         // Handle password
@@ -101,7 +102,7 @@ class ManageService
      */
     private function getUuidV4(): string
     {
-        return sprintf(
+        return \sprintf(
             '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
 
             // 32 bits for "time_low"

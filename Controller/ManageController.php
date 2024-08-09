@@ -14,7 +14,9 @@ use App\Controller\AbstractController;
 use App\Repository\Query\BaseQuery;
 use App\Utils\DataTable;
 use App\Utils\PageSetup;
+use InvalidArgumentException;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Entity\SharedProjectTimesheet;
+use KimaiPlugin\SharedProjectTimesheetsBundle\Form\SharedCustomerFormType;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Form\SharedProjectFormType;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Model\RecordMergeMode;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Repository\SharedProjectTimesheetRepository;
@@ -45,6 +47,7 @@ class ManageController extends AbstractController
         $table->setPagination($sharedProjects);
         $table->setReloadEvents('kimai.sharedProject');
 
+        $table->addColumn('type', ['class' => 'alwaysVisible w-min', 'orderBy' => false]);
         $table->addColumn('name', ['class' => 'alwaysVisible', 'orderBy' => false]);
         $table->addColumn('url', ['class' => 'alwaysVisible', 'orderBy' => false]);
         $table->addColumn('password', ['class' => 'd-none', 'orderBy' => false]);
@@ -70,11 +73,21 @@ class ManageController extends AbstractController
     #[Route(path: '/create', name: 'create_shared_project_timesheets', methods: ['GET', 'POST'])]
     public function create(Request $request): Response
     {
+        $type = $request->query->get('type');
+
+        if (!\in_array($type, [SharedProjectTimesheet::TYPE_CUSTOMER, SharedProjectTimesheet::TYPE_PROJECT])) {
+            throw new InvalidArgumentException('Invalid value for type');
+        }
+
         $sharedProject = new SharedProjectTimesheet();
 
-        $form = $this->createForm(SharedProjectFormType::class, $sharedProject, [
+        $formClass = $type === SharedProjectTimesheet::TYPE_CUSTOMER ?
+            SharedCustomerFormType::class :
+            SharedProjectFormType::class;
+
+        $form = $this->createForm($formClass, $sharedProject, [
             'method' => 'POST',
-            'action' => $this->generateUrl('create_shared_project_timesheets')
+            'action' => $this->generateUrl('create_shared_project_timesheets', ['type' => $type]),
         ]);
         $form->handleRequest($request);
 
@@ -95,23 +108,20 @@ class ManageController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/{projectId}/{shareKey}', name: 'update_shared_project_timesheets', methods: ['GET', 'POST'])]
-    public function update(string $projectId, string $shareKey, Request $request): Response
+    #[Route(path: '/{sharedProject}/{shareKey}', name: 'update_shared_project_timesheets', methods: ['GET', 'POST'])]
+    public function update(SharedProjectTimesheet $sharedProject, string $shareKey, Request $request): Response
     {
-        if ($projectId == null || $shareKey == null) {
+        if ($sharedProject->getShareKey() !== $shareKey) {
             throw $this->createNotFoundException('Project not found');
         }
 
-        /** @var SharedProjectTimesheet $sharedProject */
-        $sharedProject = $this->shareProjectTimesheetRepository->findOneBy(['project' => $projectId, 'shareKey' => $shareKey]);
-        if ($sharedProject === null) {
-            throw $this->createNotFoundException('Given project not found');
-        }
+        $formClass = $sharedProject->isCustomerSharing() ?
+            SharedCustomerFormType::class :
+            SharedProjectFormType::class;
 
-        // Store data in temporary SharedProjectTimesheet object
-        $form = $this->createForm(SharedProjectFormType::class, $sharedProject, [
+        $form = $this->createForm($formClass, $sharedProject, [
             'method' => 'POST',
-            'action' => $this->generateUrl('update_shared_project_timesheets', ['projectId' => $projectId, 'shareKey' => $shareKey])
+            'action' => $this->generateUrl('update_shared_project_timesheets', ['sharedProject' => $sharedProject->getId(), 'shareKey' => $shareKey])
         ]);
         $form->handleRequest($request);
 
@@ -136,20 +146,11 @@ class ManageController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/{projectId}/{shareKey}/remove', name: 'remove_shared_project_timesheets', methods: ['GET', 'POST'])]
-    public function remove(Request $request): Response
+    #[Route(path: '/{sharedProject}/{shareKey}/remove', name: 'remove_shared_project_timesheets', methods: ['GET', 'POST'])]
+    public function remove(SharedProjectTimesheet $sharedProject, string $shareKey): Response
     {
-        $projectId = $request->get('projectId');
-        $shareKey = $request->get('shareKey');
-
-        if ($projectId == null || $shareKey == null) {
+        if ($sharedProject->getShareKey() !== $shareKey) {
             throw $this->createNotFoundException('Project not found');
-        }
-
-        /** @var SharedProjectTimesheet $sharedProject */
-        $sharedProject = $this->shareProjectTimesheetRepository->findOneBy(['project' => $projectId, 'shareKey' => $shareKey]);
-        if (!$sharedProject || $sharedProject->getProject() === null || $sharedProject->getShareKey() === null) {
-            throw $this->createNotFoundException('Given project not found');
         }
 
         try {

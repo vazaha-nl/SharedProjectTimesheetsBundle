@@ -10,6 +10,7 @@
 
 namespace KimaiPlugin\SharedProjectTimesheetsBundle\Service;
 
+use App\Entity\Project;
 use App\Repository\Query\BaseQuery;
 use App\Repository\Query\TimesheetQuery;
 use App\Repository\TimesheetRepository;
@@ -19,13 +20,19 @@ use KimaiPlugin\SharedProjectTimesheetsBundle\Entity\SharedProjectTimesheet;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Model\ChartStat;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Model\RecordMergeMode;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Model\TimeRecord;
+use KimaiPlugin\SharedProjectTimesheetsBundle\Repository\SharedProjectTimesheetRepository;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 
 class ViewService
 {
-    public function __construct(private TimesheetRepository $timesheetRepository, private RequestStack $request, private PasswordHasherFactoryInterface $passwordHasherFactory)
+    public function __construct(
+        private TimesheetRepository $timesheetRepository,
+        private RequestStack $request,
+        private PasswordHasherFactoryInterface $passwordHasherFactory,
+        private SharedProjectTimesheetRepository $sharedTimesheetRepository,
+    )
     {
     }
 
@@ -43,11 +50,10 @@ class ViewService
 
         if ($hashedPassword !== null) {
             // Check session
-            $projectId = $sharedProject->getProject()->getId();
             $shareKey = $sharedProject->getShareKey();
             $passwordMd5 = md5($hashedPassword);
 
-            $sessionPasswordKey = "spt-authed-$projectId-$shareKey-$passwordMd5";
+            $sessionPasswordKey = \sprintf('spt-authed-%d-%s-%s', $sharedProject->getId(), $shareKey, $passwordMd5);
 
             if (!$this->request->getSession()->has($sessionPasswordKey)) {
                 // Check given password
@@ -67,12 +73,13 @@ class ViewService
      * @param SharedProjectTimesheet $sharedProject
      * @param int $year
      * @param int $month
+     * @param Project|null $limitProject limit to this project
      * @return TimeRecord[]
      * @throws \Exception
      *
      * @todo Unit test
      */
-    public function getTimeRecords(SharedProjectTimesheet $sharedProject, int $year, int $month): array
+    public function getTimeRecords(SharedProjectTimesheet $sharedProject, int $year, int $month, ?Project $limitProject = null): array
     {
         $month = max(min($month, 12), 1);
 
@@ -83,7 +90,15 @@ class ViewService
         $query = new TimesheetQuery();
         $query->setBegin($begin);
         $query->setEnd($end);
-        $query->addProject($sharedProject->getProject());
+
+        if (isset($limitProject)) {
+            $query->addProject($limitProject);
+        } else {
+            foreach ($this->sharedTimesheetRepository->getProjects($sharedProject) as $project) {
+                $query->addProject($project);
+            }
+        }
+
         $query->setOrderBy('begin');
         $query->setOrder(BaseQuery::ORDER_ASC);
 
@@ -134,27 +149,49 @@ class ViewService
      * Delivers stats for the given year (e.g. duration per month).
      * @param SharedProjectTimesheet $sharedProject
      * @param int $year
+     * @param Project|null $limitProject limit to this project
      * @return ChartStat[] stats per month, one-based index (1 - 12)
      *
      * @todo Unit test
      */
-    public function getAnnualStats(SharedProjectTimesheet $sharedProject, int $year): array
+    public function getAnnualStats(SharedProjectTimesheet $sharedProject, int $year, ?Project $limitProject = null): array
     {
-        $result = $this->timesheetRepository->createQueryBuilder('t')
+        $queryBuilder = $this->timesheetRepository->createQueryBuilder('t')
             ->select([
                 'YEAR(t.begin) as year',
                 'MONTH(t.begin) as month',
                 'SUM(t.duration) as duration',
                 'SUM(t.rate) as rate',
             ])
-            ->where('t.project = :project')
-            ->andWhere('YEAR(t.begin) = :year')
+            ->where('YEAR(t.begin) = :year')
             ->groupBy('year')
-            ->addGroupBy('month')
-            ->setParameters([
-                'project' => $sharedProject->getProject(),
-                'year' => $year,
-            ])
+            ->addGroupBy('month');
+
+        if (isset($limitProject)) {
+            $queryBuilder = $queryBuilder
+                ->andWhere('t.project = :project')
+                ->setParameters([
+                    'project' => $limitProject,
+                    'year' => $year,
+                ]);
+        } elseif ($sharedProject->isProjectSharing()) {
+            $queryBuilder = $queryBuilder
+                ->andWhere('t.project = :project')
+                ->setParameters([
+                    'project' => $sharedProject->getProject(),
+                    'year' => $year,
+                ]);
+        } else {
+            $queryBuilder = $queryBuilder
+                ->innerJoin('t.project', 'p')
+                ->andWhere('p.customer = :customer')
+                ->setParameters([
+                    'customer' => $sharedProject->getCustomer(),
+                    'year' => $year,
+                ]);
+        }
+
+        $result = $queryBuilder
             ->getQuery()
             ->getArrayResult();
 
@@ -179,13 +216,14 @@ class ViewService
      * @param SharedProjectTimesheet $sharedProject
      * @param int $year
      * @param int $month
+     * @param Project|null $limitProject limit to this project
      * @return ChartStat[] stats per day
      *
      * @todo Unit test
      */
-    public function getMonthlyStats(SharedProjectTimesheet $sharedProject, int $year, int $month): array
+    public function getMonthlyStats(SharedProjectTimesheet $sharedProject, int $year, int $month, ?Project $limitProject = null): array
     {
-        $result = $this->timesheetRepository->createQueryBuilder('t')
+        $queryBuilder = $this->timesheetRepository->createQueryBuilder('t')
             ->select([
                 'YEAR(t.begin) as year',
                 'MONTH(t.begin) as month',
@@ -193,17 +231,40 @@ class ViewService
                 'SUM(t.duration) as duration',
                 'SUM(t.rate) as rate',
             ])
-            ->where('t.project = :project')
-            ->andWhere('YEAR(t.begin) = :year')
+            ->where('YEAR(t.begin) = :year')
             ->andWhere('MONTH(t.begin) = :month')
             ->groupBy('year')
             ->addGroupBy('month')
-            ->addGroupBy('day')
-            ->setParameters([
-                'project' => $sharedProject->getProject(),
-                'year' => $year,
-                'month' => $month
-            ])
+            ->addGroupBy('day');
+
+        if (isset($limitProject)) {
+            $queryBuilder = $queryBuilder
+                ->andWhere('t.project = :project')
+                ->setParameters([
+                    'project' => $limitProject,
+                    'year' => $year,
+                    'month' => $month,
+                ]);
+        } elseif ($sharedProject->isProjectSharing()) {
+            $queryBuilder = $queryBuilder
+                ->andWhere('t.project = :project')
+                ->setParameters([
+                    'project' => $sharedProject->getProject(),
+                    'year' => $year,
+                    'month' => $month,
+                ]);
+        } else {
+            $queryBuilder = $queryBuilder
+                ->innerJoin('t.project', 'p')
+                ->andWhere('p.customer = :customer')
+                ->setParameters([
+                    'customer' => $sharedProject->getCustomer(),
+                    'year' => $year,
+                    'month' => $month,
+                ]);
+        }
+
+        $result = $queryBuilder
             ->getQuery()
             ->getArrayResult();
 

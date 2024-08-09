@@ -10,27 +10,36 @@
 
 namespace KimaiPlugin\SharedProjectTimesheetsBundle\Entity;
 
+use App\Entity\Customer;
 use App\Entity\Project;
 use Doctrine\ORM\Mapping as ORM;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Model\RecordMergeMode;
 use KimaiPlugin\SharedProjectTimesheetsBundle\Repository\SharedProjectTimesheetRepository;
+use LogicException;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Table(name: 'kimai2_shared_project_timesheets')]
+#[ORM\Index(columns: ['customer_id'])]
 #[ORM\Index(columns: ['project_id'])]
 #[ORM\Index(columns: ['share_key'])]
-#[ORM\Index(columns: ['project_id', 'share_key'])]
+#[ORM\Index(columns: ['customer_id', 'project_id', 'share_key'])]
 #[ORM\Entity(repositoryClass: SharedProjectTimesheetRepository::class)]
 class SharedProjectTimesheet
 {
+    public const TYPE_PROJECT = 'project';
+    public const TYPE_CUSTOMER = 'customer';
+
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(name: 'id', type: 'integer')]
     private ?int $id = null;
 
+    #[ORM\ManyToOne(targetEntity: Customer::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    private ?Customer $customer = null;
+
     #[ORM\ManyToOne(targetEntity: Project::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
-    #[Assert\NotNull]
     private ?Project $project = null;
 
     #[ORM\Column(name: 'share_key', type: 'string', length: 20, nullable: false)]
@@ -76,6 +85,16 @@ class SharedProjectTimesheet
     public function setProject(Project $project): void
     {
         $this->project = $project;
+    }
+
+    public function getCustomer(): ?Customer
+    {
+        return $this->customer;
+    }
+
+    public function setCustomer(Customer $customer): void
+    {
+        $this->customer = $customer;
     }
 
     public function getShareKey(): ?string
@@ -171,5 +190,28 @@ class SharedProjectTimesheet
     public function setTimeBudgetStatsVisible(bool $timeBudgetStatsVisible): void
     {
         $this->timeBudgetStatsVisible = $timeBudgetStatsVisible;
+    }
+
+    public function getType(): string
+    {
+        if ($this->customer !== null && $this->project !== null) {
+            throw new LogicException('Invalid state: customer and project cannot be filled both');
+        }
+
+        if ($this->customer !== null) {
+            return static::TYPE_CUSTOMER;
+        }
+
+        return static::TYPE_PROJECT;
+    }
+
+    public function isCustomerSharing(): bool
+    {
+        return $this->getType() === static::TYPE_CUSTOMER;
+    }
+
+    public function isProjectSharing(): bool
+    {
+        return $this->getType() === static::TYPE_PROJECT;
     }
 }
