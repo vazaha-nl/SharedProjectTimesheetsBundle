@@ -111,7 +111,7 @@ class ManageController extends AbstractController
     #[Route(path: '/{sharedProject}/{shareKey}', name: 'update_shared_project_timesheets', methods: ['GET', 'POST'])]
     public function update(SharedProjectTimesheet $sharedProject, string $shareKey, Request $request): Response
     {
-        if ($shareKey == null || $sharedProject->getShareKey() !== $shareKey) {
+        if ($sharedProject->getShareKey() !== $shareKey) {
             throw $this->createNotFoundException('Project not found');
         }
 
@@ -149,7 +149,7 @@ class ManageController extends AbstractController
     #[Route(path: '/{sharedProject}/{shareKey}/remove', name: 'remove_shared_project_timesheets', methods: ['GET', 'POST'])]
     public function remove(SharedProjectTimesheet $sharedProject, string $shareKey): Response
     {
-        if ($shareKey == null || $sharedProject->getShareKey() !== $shareKey) {
+        if ($sharedProject->getShareKey() !== $shareKey) {
             throw $this->createNotFoundException('Project not found');
         }
 
