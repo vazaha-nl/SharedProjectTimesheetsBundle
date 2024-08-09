@@ -75,10 +75,6 @@ class ManageService
             throw new \InvalidArgumentException('Cannot update shared project timesheet with share key equals null');
         }
 
-        if ($sharedProjectTimesheet->getType() === null) {
-            throw new \InvalidArgumentException('No valid project or customer specified');
-        }
-
         // Handle password
         $currentHashedPassword = $sharedProjectTimesheet !== null && !empty($sharedProjectTimesheet->getPassword()) ? $sharedProjectTimesheet->getPassword() : null;
 
