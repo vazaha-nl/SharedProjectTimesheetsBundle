@@ -220,8 +220,8 @@
                 <table class="table table-hovertable-vcenter table-hover dataTable">
                     <thead>
                         <tr>
-                            <th>NAME</th>
-                            <th>COMMENT</th>
+                            <th>{{ 'name'|trans }}</th>
+                            <th>{{ 'comment'|trans }}</th>
                             <th class="w-min"></th>
                             {% if (sharedProject.isBudgetStatsVisible() or sharedProject.isTimeBudgetStatsVisible()) %}
                                 <th></th>
