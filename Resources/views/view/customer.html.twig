@@ -179,9 +179,6 @@
     {% if ((stats.hasBudget() and sharedProject.isBudgetStatsVisible()) or (stats.hasTimeBudget() and sharedProject.isTimeBudgetStatsVisible())) %}
         {% import "macros/progressbar.html.twig" as progress %}
         <div class="card mb-3">
-            <div class="card-header">
-                <h3 class="card-title">{{ 'shared_project_timesheets.view.stats.title' | trans }}</h3>
-            </div>
             <div class="card-body p-0">
                 <table class="table table-hover dataTable">
                     {% if stats.hasBudget() and sharedProject.isBudgetStatsVisible() %}
@@ -221,11 +218,10 @@
                     <thead>
                         <tr>
                             <th>{{ 'name'|trans }}</th>
-                            <th>{{ 'comment'|trans }}</th>
-                            <th class="w-min"></th>
                             {% if (sharedProject.isBudgetStatsVisible() or sharedProject.isTimeBudgetStatsVisible()) %}
                                 <th></th>
                             {% endif %}
+                            <th class="w-min"></th>
                         </tr>
                     </thead>
                     {% for stats in projectStats %}
@@ -239,8 +235,6 @@
                         %}
                         <tr class="alternative-link" data-href="{{ project_url }}">
                             <td>{{ project.name }}</td>
-                            <td>{{ project.comment }}</td>
-                            <td><a href="{{ project_url }}" class="btn btn-primary">{{ 'shared_project_timesheets.view.table.title' | trans }}</a></td>
                             {% if (sharedProject.isBudgetStatsVisible() or sharedProject.isTimeBudgetStatsVisible()) %}
                                 <td>
                                     {% if stats.hasBudget() and sharedProject.isBudgetStatsVisible() %}
@@ -251,6 +245,7 @@
                                     {% endif %}
                                 </td>
                             {% endif %}
+                            <td><a href="{{ project_url }}" class="btn btn-primary">{{ 'shared_project_timesheets.view.table.title' | trans }}</a></td>
                         </tr>
                     {% endfor %}
                 </table>
